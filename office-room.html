@@ -31,8 +31,8 @@ The office is the plan's lower-right bedroom; its 159 x 178 footprint and window
 Each room is a polygon; HOUSE.openings cuts doors, cased openings and windows into any wall they lie on.
 Other rooms are empty shells: fixtures and furniture need ben's measurements or photos first.
 AERIAL + LAYOUT OPTIONS + UI (2026-11-15): the lot, driveway, front bed, back patio and lawn are traced from the owner's
-aerial photo (scale and rotation from the back eave: 127 px = the house's 48 ft; about 4.5 inches per pixel; good to
-roughly 5 ft). DESIGNS holds layout options, each with its own saved item list in `layouts`: base (as planned),
+straightened aerial photo (house square to the image; main roof 135 px eave to eave = 576 in, 4.27 in per pixel; A() converts).
+A first trace from a rotated aerial came out far too slanted and was thrown away: the lot is close to a rectangle square to the house. DESIGNS holds layout options, each with its own saved item list in `layouts`: base (as planned),
 dearmodern (Cliff Tan's rules), second (Emily Henderson's spacing rules), open (utility closet removed; uses OPEN_ROOMS).
 Notes in each option cite the pages the rules came from. The panel is four tabs (View, Design, Items, Check) in a plain
 Apple-like style the owner asked for ("think apple simple UI UX but keep the functionality"); the selected item floats over the view.
@@ -238,7 +238,7 @@ ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px
           <li><b>Office:</b> built to your tape measure. The closet opening and door position come from the floor plan; the chair, glass cabinet and canvases are sized from photos.</li>
           <li><b>Rest of the house:</b> room sizes are the plan's printed figures. Door and window positions are read off the drawing, good to a few inches. Ceilings are drawn at 96″.</li>
           <li><b>Fixtures and furniture outside the office:</b> placed and sized by eye from your photos. They show the house as it is today, minus the keyboard and guitars, which the office proposal moves.</li>
-          <li><b>The lot:</b> the house position, driveway, front bed, patio and lawn are traced from the aerial photo, good to roughly 5 feet. The lot outline is traced the same way and lands within about 10% of the parcel map's side lengths.</li>
+          <li><b>The lot:</b> the outline is drawn to the parcel map's lengths (70′ on the street, 59′ at the back, 118′ and 123′ down the sides) and squared to the house using your aerial photo. The driveway, front bed, patio and lawn are traced from the aerial at the house's own scale, good to roughly 3 feet. Which side is 118′ and which is 123′ is read from the parcel map's orientation.</li>
           <li><b>Layout options:</b> my reading of each designer's published rules applied to your rooms. They are suggestions to react to, not their work.</li>
         </ul></section>
     </div>
@@ -286,9 +286,10 @@ const prod = (key, fallback) => ({...fallback, ...(PRODUCTS[key]||{})});
 const S = { design:'base', look:'walnut', lights:{sun:1,cans:0,fan:0,desk:0,screens:1,floor:0,shelf:0,house:0}, dims:false, view:'door', sel:null };
 let items = [], layouts = {};
 const KEY = 'office-room-v5';
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify({v:7,layouts,design:S.design,look:S.look,lights:S.lights})); }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({v:8,layouts,design:S.design,look:S.look,lights:S.lights})); }catch(e){} }
 function load(){ try{ const d=JSON.parse(localStorage.getItem(KEY)||'null'); if(!d) return false; const ok=L=>Array.isArray(L)&&L.every(i=>T[i.t]);
-  if(d.v===7&&d.layouts&&Object.values(d.layouts).every(ok)){ layouts=d.layouts; S.design=DESIGNS[d.design]&&layouts[d.design]?d.design:'base'; }
+  if((d.v===7||d.v===8)&&d.layouts&&Object.values(d.layouts).every(ok)){ layouts=d.layouts;
+    if(d.v===7){ const fresh=houseItems(); for(const L of Object.values(layouts)) for(const t of ['sauna','firePit','patioChair','umbrella']) L.filter(i=>i.t===t).forEach((i,n)=>{ const f=fresh.filter(q=>q.t===t)[n]; if(f){ i.x=f.x; i.z=f.z; i.rot=f.rot; } }); } S.design=DESIGNS[d.design]&&layouts[d.design]?d.design:'base'; }
   else if(ok(d.items)){ let L=d.items; if(d.v!==6){ nextId=Math.max(0,...L.map(i=>i.id))+1; L=L.concat(houseItems()); } layouts={base:L}; S.design='base'; }
   else return false;
   if(!layouts.base) return false; S.look=d.look||S.look; Object.assign(S.lights,d.lights||{}); items=layouts[S.design];
@@ -500,24 +501,28 @@ function buildFixed(){
   cyl(h,-44,R.H-14,221,.5,14,mat.black); cyl(h,-44,R.H-16,221,6,1,mat.black); cyl(h,-44,R.H-24,221,6,1,mat.black);
 }
 /* ---------- The lot. Side lengths are from the parcel map; where the house sits on it and the yard areas are placed by eye. ---------- */
-// Traced from the aerial photo: the back eave (127 px for the house's 48 ft) fixes scale and rotation.
-const LOT=[[851,-253],[964,603],[-564,772],[-452,-15]], LB={x0:-564,x1:965,z0:-253,z1:772};
-const ZONES=[{x0:-545,x1:-171,z0:-20,z1:735},{x0:-171,x1:183,z0:528,z1:700},{x0:156,x1:860,z0:-115,z1:335}];
+// Traced from the owner's straightened aerial photo, where the house sits square to the image. The main roof is 135 px
+// eave to eave for 576 inches of house, so 4.27 inches per pixel; A(ax,ay) turns an aerial pixel into inches.
+const A=(ax,ay)=>[(280-ay)*4.266-195,(ax-33)*4.266-32];
+// Lot outline: drawn to the parcel map's lengths (70 ft street side, 59 ft back, 118 ft east side, 123 ft west side),
+// positioned and squared to the house from the aerial (back fence line and the lot's centre line).
+const LOT=[[827,-132],[888,707],[-587,657],[-587,-51]], LB={x0:-587,x1:888,z0:-132,z1:707};
+const ZONES=[{x0:-587,x1:-171,z0:-45,z1:650},{x0:-171,x1:183,z0:528,z1:660},{x0:156,x1:820,z0:-87,z1:140},{x0:156,x1:509,z0:140,z1:335}];
 function buildLot(){
   tgt=house;
   slab(LOT,-3,mat.mulch,true);
-  slab([[-175,-58],[-175,286],[-240,292],[-290,330],[-330,449],[-310,600],[-298,700],[-300,735],[-540,755],[-440,-10]],-2.7,mat.turf,true);                 // lawn
-  slab([[-167,286],[-240,292],[-290,330],[-330,449],[-310,600],[-298,700],[-167,705]],-1.5,mat.patio,true); slab([[-167,524],[-87,524],[-87,705],[-167,705]],-1.5,mat.patio,true);   // back patio, curved into the lawn
-  slab([[183,677],[183,700],[-87,705],[-87,677]],-1.5,mat.patio,true);
-  slab([[880,-245],[890,40],[745,40],[640,180],[563,254],[450,335],[187,335],[187,284],[156,284],[156,-122]],-2.4,mat.paver,true);                          // driveway
-  slab([[745,40],[890,40],[962,598],[548,648],[548,262],[563,254],[640,180]],-2.2,mat.gravel,true);                                                       // front planting bed
+  slab([[-171,-2],[-171,267],[-259,271],[-302,305],[-302,600],[-545,600],[-545,-2]],-2.7,mat.turf,true);                                   // lawn
+  slab([[-167,267],[-167,668],[-585,652],[-585,600],[-302,600],[-302,305],[-259,271]],-1.5,mat.patio,true);                               // back patio with the path down the west side of the lawn
+  slab([[-88,528],[-88,670],[-167,668],[-167,528]],-1.5,mat.patio,true);
+  slab([[825,-128],[845,140],[735,147],[658,168],[581,211],[530,275],[509,296],[450,335],[187,335],[187,284],[156,284],[156,-90]],-2.4,mat.paver,true);   // driveway
+  slab([[735,147],[735,680],[573,680],[573,467],[522,424],[522,296],[530,275],[581,211],[658,168]],-2.2,mat.gravel,true);                 // front planting bed
   tgt=shell;
   const f=(a,b)=>{ const o=boxAlong(a,b,-3,72,2,mat.fence); o.castShadow=true; };
-  f(LOT[3],LOT[2]); f(LOT[3],[150,-124]); f(LOT[2],[545,650]);
-  for(const [ax,az,r] of [[700,150,20],[640,330,26],[760,420,16],[820,250,14],[600,520,18],[850,520,13]]){ ball(house,ax,r*.45-2,az,r,mat.agave,.6); }
+  f(LOT[3],LOT[2]); f(LOT[3],[160,-94]); f(LOT[2],[530,695]);
+  for(const [ax,ay,r] of [[93,72,14],[110,72,13],[94,90,16],[110,92,14],[128,72,12],[110,105,13],[173,70,12],[188,74,12]]){ const [x,z]=A(ax,ay); ball(house,x,r*.45-2,z,r,mat.agave,.6); }
   labelTgt=llabels;
-  label('Lawn',-420,4,330,34); label('Back patio',-235,4,520,24); label('Driveway',520,4,60,34); label('Front bed',720,4,420,24);
-  label('Street · about 70′',985,4,180,30); label('Back · about 59′',-590,4,380,30); label('about 118′',200,4,-215,30); label('about 123′',200,4,760,30);
+  label('Lawn',-430,4,300,34); label('Back patio',-232,4,470,24); label('Driveway',480,4,40,34); label('Front bed',660,4,470,24);
+  label('Street side · 70′',905,4,290,30); label('Back · 59′',-625,4,300,30); label('118′',120,4,-160,30); label('123′',120,4,740,30);
   labelTgt=dims;
 }
 
@@ -685,7 +690,7 @@ function houseItems(){ const F=(t,x,z,rot=0)=>({id:nextId++,t,x,z,rot});
     F('rugDining',22,455,1), F('diningTable',22,455,1), F('diningChair',-4,437,1), F('diningChair',-4,473,1), F('diningChair',48,437,3), F('diningChair',48,473,3),
     F('rugPrimary',-86,70), F('bedQueen',-86,43.5), F('nightstand',-42,8.5), F('nightstand',-130,8.5), F('dresser',-121,149,2),
     F('runner',-44,215,1), F('mgb',300,420,2), F('washer',205,575,2), F('washer',234,575,2),
-    F('sauna',-212,575), F('firePit',-250,415), F('patioChair',-222,382,3), F('patioChair',-286,408,1), F('umbrella',-267,455),
+    F('sauna',-236,505), F('firePit',-250,440), F('patioChair',-222,410,3), F('patioChair',-282,468,1), F('umbrella',-292,395),
   ];
 }
 
@@ -868,7 +873,7 @@ function facing(it,dist,side,h){ const r=it.rot, f=[[0,1],[1,0],[0,-1],[-1,0]][r
 function viewSpec(v){
   const {W,D,nook:n}=R, a=camera.aspect, wide=a<1;
   if(v==='lot'){ const cx=(LB.x0+LB.x1)/2, cz=(LB.z0+LB.z1)/2, fov=22, half=Math.max((LB.x1-LB.x0)/2+70,((LB.z1-LB.z0)/2+50)/a); return {p:[cx+.5,half/Math.tan(fov*PI/360),cz],t:[cx,0,cz],fov,dims:'house'}; }
-  if(v==='lotiso'){ const k=wide?1.5:1; return {p:[1500*k,900*k,-500*k],t:[200,0,260],fov:38,dims:'house'}; }
+  if(v==='lotiso'){ const k=wide?1.5:1; return {p:[1500*k,820*k,290],t:[150,0,290],fov:38,dims:'house'}; }
   if(v==='hplan'||v==='hiso'){ const cx=(HB.x0+HB.x1)/2, cz=(HB.z0+HB.z1)/2;
     if(v==='hplan'){ const fov=22, half=Math.max((HB.x1-HB.x0)/2+45,((HB.z1-HB.z0)/2+40)/a); return {p:[cx+.5,half/Math.tan(fov*PI/360),cz],t:[cx,0,cz],fov,dims:'house'}; }
     const k=wide?1.5:1; return {p:[cx+520*k,600*k,cz-470*k],t:[cx-30,0,cz+20],fov:38,dims:'house'}; }

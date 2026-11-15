@@ -71,11 +71,14 @@ From the owner's interior and yard photos, all by eye and not measured:
 
 ### Aerial, layout options and interface (2026-11-15)
 
-- **Lot from the aerial photo:** the house's back eave (127 px for 48 ft of house) fixes scale and rotation, about
-  4.5 inches per pixel. The lot outline, driveway, front planting bed, curved back patio and lawn are traced from
-  it, good to roughly 5 ft; the traced lot sides land within about 10% of the parcel map (70, 59, 118, 123 ft).
-  The garage roof reads about 7 ft longer toward the street than the plan's garage, unexplained (deep eave or a
-  slightly angled photo). The garage has no door into the house (owner confirmed).
+- **Lot from the aerial photo:** traced from the owner's straightened aerial, in which the house sits square to the
+  image. The main roof is 135 px eave to eave for 576 inches of house, so 4.27 inches per pixel (`A(ax,ay)` in the
+  page converts). The lot outline is drawn to the parcel map's lengths (70 ft street side, 59 ft back, 118 ft east
+  side, 123 ft west side), because the owner wants known measurements to set the scale; the aerial only positions
+  and squares it (the traced outline came out 68, 62 and 117 ft, so the two agree). Driveway, front planting bed, back patio with its path down
+  the west side of the lawn, and the lawn are traced from it, good to roughly 3 ft. A first attempt from a rotated
+  aerial produced a badly slanted lot and was discarded: do not trace from a rotated photo. The garage has no door
+  into the house (owner confirmed). The plan's west "patio" looks like bare ground in the aerial.
 - **Layout options** (`DESIGNS`, Design tab; "As planned" switches them off in one click). Each keeps its own saved
   item list in `layouts`.
   - Dear Modern: Cliff Tan's rules as reported in a Tatler Asia interview and a Bustle piece (bed must not face the
