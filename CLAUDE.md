@@ -93,6 +93,29 @@ From the owner's interior and yard photos, all by eye and not measured:
   Design, Items, Check), system font, segmented controls, switches; the selected item's card floats over the view.
   Keep new controls inside this structure instead of adding sections.
 
+### Layout rework, lights and camera (2026-11-15, later)
+
+Owner feedback that shaped this, keep honouring it:
+
+- Layout options may add new pieces, swap or remove existing ones, and should be detailed: "don't be restricted to
+  the things we already have in there", except fixed things like the fireplace. They cover the yard too.
+- He likes the desk facing the door (Dear Modern) but it must never block the loveseat's view of the TV.
+- "I really am beginning to hate that tree in there": the tall plant is out of the office (now in the living room).
+- "Closet doors should be a choice": Design tab has primary (mirrored / plain white) and office (open / sliding).
+- Open living removes the whole island (utility closet and pantry); the pantry becomes a tall cabinet at the end
+  of the kitchen's sink run, "the far left corner when you enter the kitchen from the foyer".
+- Never block the living room's back door (north wall) with seating.
+- The barrel sauna stands against the west fence at the line where the patio meets the lawn, not by the house.
+- The real sectional is an L: one arm along the window wall, one facing the TV, with a separate ottoman.
+
+What was built: `DESIGNS` options now use `add`, `rm`, `put`; per-layout closet choices live in `opts`; new catalog
+pieces come from real listings in `PRODUCTS` (four have sizes not confirmed on the product page and say so).
+Lights from the owner's photos: `HOUSE_LIGHTS` plus fixtures in `buildFixed()`, a flickering fireplace, and a sun
+that casts through windows (walls and ceilings cast shadows; shadows are redrawn only when something changes, and
+sun shadows are off in overhead views). Sunlight comes from the back-yard side. Camera: the turning point is moved
+to the floor spot being looked at after every drag, zoom or walk (`reanchor`), zoom goes toward the cursor, and
+walking speed scales with camera height (Shift doubles it). Saved layouts are version 9; older saves are dropped.
+
 ## Rules for the model
 
 1. Dimensional accuracy beats looks. Never say something fits until the fit check or a measurement shows it.

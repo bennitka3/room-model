@@ -16,7 +16,8 @@ const { chromium } = require('playwright'); const fs=require('fs');
   for(const r of ['living','kitchen','hall','primary','bath1','garage']){ await p.selectOption('#roomSel',r); await snap('room_'+r); }
   await p.keyboard.down('w'); await p.waitForTimeout(600); await p.keyboard.up('w');
   // select + drag test: select the loveseat via list, then drag it in plan view
-  for(const d of ['dearmodern','second','open']){ await tab('Design'); await p.click('#ds_'+d); await snap('design_'+d+'_panel'); await sc('House'); await snap('design_'+d); }
+  await tab('Design'); await p.click('#pcWhite'); await p.click('#ocDoors'); await p.click('#pcMirror'); await p.click('#ocOpen'); await p.click('#lFire'); await p.click('#lHouse'); await sc('House'); await p.selectOption('#roomSel','living'); await snap('living_lit'); await tab('Design'); await p.click('#lightDay');
+  for(const d of ['dearmodern','second','open']){ await tab('Design'); await p.click('#ds_'+d); await snap('design_'+d+'_panel'); await sc('House'); await snap('design_'+d); await sc('Lot'); await snap('design_'+d+'_lot'); await sc('Office'); await p.click('#vPlan'); await snap('design_'+d+'_office'); await p.click('#vTv'); await snap('design_'+d+'_tv'); }
   await tab('Design'); await p.click('#ds_base'); await sc('Office'); await p.click('#vPlan'); await p.waitForTimeout(1500);
   const before=await p.evaluate(()=>{ const it=window.__room.items().find(i=>i.t==='loveseat'); window.__room.select(it.id); return {x:it.x,z:it.z}; });
   // find screen position of the loveseat

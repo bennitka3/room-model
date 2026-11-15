@@ -194,6 +194,12 @@ ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px
         <div class="opts" id="segDesign"></div>
       </section>
       <section id="designNoteSec" hidden><div class="note" id="designNote"></div></section>
+      <section><h2>Closet doors</h2>
+        <p class="small" style="margin:0 0 6px">Primary bedroom</p>
+        <div class="seg" id="segPc"><button id="pcMirror" data-v="mirror">Mirrored</button><button id="pcWhite" data-v="white">Plain white</button></div>
+        <p class="small" style="margin:10px 0 6px">Office</p>
+        <div class="seg" id="segOc"><button id="ocOpen" data-v="open">Open</button><button id="ocDoors" data-v="doors">Sliding doors</button></div>
+      </section>
       <section><h2>Office desk</h2>
         <div class="seg" id="segDesk">
           <button id="desk78" data-v="78">78″ desk</button>
@@ -220,7 +226,8 @@ ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px
           <button class="sw" id="lScreens" data-l="screens"><span>Screens</span><i></i></button>
           <button class="sw" id="lFloor" data-l="floor"><span>Floor lamp</span><i></i></button>
           <button class="sw" id="lShelf" data-l="shelf"><span>Shelf glow</span><i></i></button>
-          <button class="sw" id="lHouse" data-l="house"><span>Rest of the house</span><i></i></button>
+          <button class="sw" id="lHouse" data-l="house"><span>House ceiling lights</span><i></i></button>
+          <button class="sw" id="lFire" data-l="fire"><span>Fireplace</span><i></i></button>
         </div></section>
     </div>
 
@@ -239,6 +246,7 @@ ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px
           <li><b>Rest of the house:</b> room sizes are the plan's printed figures. Door and window positions are read off the drawing, good to a few inches. Ceilings are drawn at 96″.</li>
           <li><b>Fixtures and furniture outside the office:</b> placed and sized by eye from your photos. They show the house as it is today, minus the keyboard and guitars, which the office proposal moves.</li>
           <li><b>The lot:</b> the outline is drawn to the parcel map's lengths (70′ on the street, 59′ at the back, 118′ and 123′ down the sides) and squared to the house using your aerial photo. The driveway, front bed, patio and lawn are traced from the aerial at the house's own scale, good to roughly 3 feet. Which side is 118′ and which is 123′ is read from the parcel map's orientation.</li>
+          <li><b>Lights:</b> the house ceiling lights, bath vanity lights, garage light and fireplace are placed from your photos. The second bedroom and foyer had no photo, so they have no light of their own. Sunlight comes from the back-yard side, where your photos show it landing.</li>
           <li><b>Layout options:</b> my reading of each designer's published rules applied to your rooms. They are suggestions to react to, not their work.</li>
         </ul></section>
     </div>
@@ -279,18 +287,28 @@ const PRODUCTS = {
   panel:{w:24,d:2,h:48,product:'ATS Acoustic Panel 24 × 48 × 2, Charcoal',url:'https://www.atsacoustics.com/item--ATS-Acoustic-Panel-24-x-48-x-2--1270.html',price:96,note:'Price is per panel.'},
   slat:{w:23.6,d:.83,h:94.5,product:'Andor Willow Walnut Panel, 8 ft',url:'https://andorwillow.com/products/walnut-willow-panel',price:249},
   kbench:{note:'No listing with a trustworthy size yet (the On-Stage KT7800 page gives two conflicting sizes), so a typical X-bench size is drawn.'},
+  accentChair:{w:32.25,d:37.75,h:39.75,product:'IKEA Strandmon wing chair',url:'https://www.ikea.com/us/en/p/strandmon-wing-chair-grann-bomstad-dark-brown-20494637',price:499,note:'The listing checked is the dark brown one; fabric colours share the same size.'},
+  sideTable:{w:18.9,d:18.9,h:17.75,product:'IKEA Frötorp side table',url:'https://www.ikea.com/us/en/p/frotorp-side-table-anthracite-marble-effect-black-glass-10492276/',price:180},
+  entryConsole:{w:42,d:12,h:32.25,product:'Kings Brand Sawyer 2-drawer console, walnut',url:'https://www.target.com/p/-/A-1001044372',price:130,note:'Size not confirmed on the product page itself; check before buying.'},
+  bedGuest:{w:69.25,d:88.6,h:42.9,product:'IKEA Tufjord upholstered bed frame, queen',url:'https://ikea.pr/mayaguez/en/pd/tufjord-upholstered-bed-frame-black-blue-art-20572507',price:525},
+  dresserNew:{w:55.1,d:18.9,h:29.5,product:'IKEA Storklinta 6-drawer dresser',url:'https://www.ikea.com/us/en/p/storklinta-6-drawer-dresser-oak-effect-anchor-unlock-function-00561246/',price:280},
+  rug8x10:{w:120,d:94,h:.5,product:'Threshold High Low Grid rug, 7′10″ × 10′',url:'https://www.target.com/p/7-39-x10-39-high-low-grid-area-rug-taupe-cream-gray-threshold-8482/-/A-94258799',price:160},
+  rug9x12:{w:146,d:108,h:.33,product:'Rugs.com Augusta rug, 9′ × 12′2″, light gray',url:'https://rugs.com/light-gray-9x12-modern-classical-area-rug-6259948',price:329},
+  outdoorSofa:{w:58,d:35,h:31,product:'Rooms To Go Solana outdoor loveseat',url:'https://www.roomstogo.com/furniture/product/solana-white-outdoor-loveseat-with-gray-cushions/70211215',note:'White frame, gray cushions; no price shown.'},
+  outdoorDining:{w:78.5,d:39.5,h:30,product:'Article Latta 78.5″ outdoor dining table',url:'https://www.article.com/product/13499/latta-78-5-outdoor-dining-table-slate-gray',price:749,note:'Size not confirmed on the product page itself; check before buying. Chairs are drawn for scale only.'},
+  outdoorRug:{w:120,d:94,h:.17,product:'Rugs.com Darian indoor/outdoor rug, 7′10″ × 10′',url:'https://rugs.com/light-gray-8x10-outdoor-solid-area-rug-6405474',price:319},
+  planter:{w:20,d:20,h:10,product:'Kante 20″ round bowl planter, charcoal',url:'https://www.target.com/p/-/A-79824899',price:106,note:'Size not confirmed on the product page itself; check before buying.'},
+  pantryCab:{w:30,d:16,h:72,product:'30″ × 16″ × 72″ white pantry cabinet',url:'https://homedepot.com/p/30-in-W-x-16-in-D-x-72-in-H-White-Linen-Cabinet-71in-Kitchen-Pantry-Storage-Cabinet-Freestanding-Cupboard-Dining-Room-LM-GB032/331334355',price:339,note:'Size not confirmed on the product page itself; check before buying.'},
 };
 const prod = (key, fallback) => ({...fallback, ...(PRODUCTS[key]||{})});
 
 /* ---------- State ---------- */
-const S = { design:'base', look:'walnut', lights:{sun:1,cans:0,fan:0,desk:0,screens:1,floor:0,shelf:0,house:0}, dims:false, view:'door', sel:null };
+const S = { design:'base', look:'walnut', lights:{sun:1,cans:0,fan:0,desk:0,screens:1,floor:0,shelf:0,house:0,fire:0}, dims:false, view:'door', sel:null };
 let items = [], layouts = {};
 const KEY = 'office-room-v5';
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify({v:8,layouts,design:S.design,look:S.look,lights:S.lights})); }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({v:9,layouts,opts,design:S.design,look:S.look,lights:S.lights})); }catch(e){} }
 function load(){ try{ const d=JSON.parse(localStorage.getItem(KEY)||'null'); if(!d) return false; const ok=L=>Array.isArray(L)&&L.every(i=>T[i.t]);
-  if((d.v===7||d.v===8)&&d.layouts&&Object.values(d.layouts).every(ok)){ layouts=d.layouts;
-    if(d.v===7){ const fresh=houseItems(); for(const L of Object.values(layouts)) for(const t of ['sauna','firePit','patioChair','umbrella']) L.filter(i=>i.t===t).forEach((i,n)=>{ const f=fresh.filter(q=>q.t===t)[n]; if(f){ i.x=f.x; i.z=f.z; i.rot=f.rot; } }); } S.design=DESIGNS[d.design]&&layouts[d.design]?d.design:'base'; }
-  else if(ok(d.items)){ let L=d.items; if(d.v!==6){ nextId=Math.max(0,...L.map(i=>i.id))+1; L=L.concat(houseItems()); } layouts={base:L}; S.design='base'; }
+  if(d.v===9&&d.layouts&&Object.values(d.layouts).every(ok)){ layouts=d.layouts; opts=d.opts||{}; S.design=DESIGNS[d.design]&&layouts[d.design]?d.design:'base'; }
   else return false;
   if(!layouts.base) return false; S.look=d.look||S.look; Object.assign(S.lights,d.lights||{}); items=layouts[S.design];
   nextId=Math.max(0,...Object.values(layouts).flat().map(i=>i.id))+1; return true; }catch(e){ return false; } }
@@ -301,7 +319,8 @@ const renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;
+const shadowsDirty=()=>{ renderer.shadowMap.needsUpdate = true; };
 renderer.xr.enabled = true;
 stage.prepend(renderer.domElement);
 const scene = new THREE.Scene();
@@ -309,7 +328,11 @@ scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnviron
 const rig = new THREE.Group(); scene.add(rig);
 const camera = new THREE.PerspectiveCamera(60,1,0.05,400); rig.add(camera);
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true; controls.dampingFactor = .12; controls.maxPolarAngle = PI*0.52;
+controls.enableDamping = true; controls.dampingFactor = .12; controls.maxPolarAngle = PI*0.52; controls.zoomToCursor = true;
+// keep the turning point right in front of the camera: after every drag, zoom or walk it is moved to the spot on the floor you are looking at
+const _d=new THREE.Vector3();
+function reanchor(){ camera.getWorldDirection(_d); const p=camera.position; let t=_d.y<-.04?-p.y/_d.y:3; t=Math.min(Math.max(t,.8),45); controls.target.copy(p).addScaledVector(_d,t); }
+controls.addEventListener('end',reanchor);
 const world = new THREE.Group(); world.scale.setScalar(I); scene.add(world);
 const shell = new THREE.Group(), furn = new THREE.Group(), dims = new THREE.Group(), lights = new THREE.Group();
 const house = new THREE.Group(), hlabels = new THREE.Group(), llabels = new THREE.Group(); hlabels.visible=false; llabels.visible=false;
@@ -333,7 +356,7 @@ const mat = {
   screenOn:M(0x10141c,{roughness:.2,emissive:0x1c2c4a,emissiveIntensity:.8}), screenOff:M(0x0c0d10,{roughness:.15}),
   glass:new THREE.MeshBasicMaterial({color:0xcfe3f1}), blind:M(0x3a3c41,{roughness:1,transparent:true,opacity:.88}),
   lampOn:M(0xfff1d6,{emissive:0xffd9a0,emissiveIntensity:1.8}), lampOff:M(0xe9e2d2,{roughness:.9}),
-  can:M(0xffffff,{emissive:0xfff0d8,emissiveIntensity:.2}), fanLamp:M(0xffffff,{emissive:0xfff0d8,emissiveIntensity:.2}),
+  can:M(0xffffff,{emissive:0xfff0d8,emissiveIntensity:.2}), canH:M(0xffffff,{emissive:0xfff0d8,emissiveIntensity:.15}), fire:M(0x2a1a12,{emissive:0xff5a10,emissiveIntensity:0}), fanLamp:M(0xffffff,{emissive:0xfff0d8,emissiveIntensity:.2}),
   acoustic:M(0x34373c,{roughness:1}), spruce:M(0xc99a5b,{roughness:.45}), cherry:M(0x7a1f1c,{roughness:.3}),
   leaf:M(0x4d7a4a,{roughness:.9,flatShading:true}), leafDark:M(0x355c38,{roughness:.9,flatShading:true}), pot:M(0xd9d4cb,{roughness:.7}), soil:M(0x3a2c22),
   clearGlass:M(0xe8f2f4,{roughness:.05,transparent:true,opacity:.22}), book1:M(0x6d7f8c), book2:M(0xb9a27a), book3:M(0x7a4b3a), dish:M(0x7d9a52,{roughness:.4}),
@@ -386,10 +409,10 @@ function cyl(p,x,y,z,r,h,m,seg=24,r2){ const o=new THREE.Mesh(new THREE.Cylinder
 function ball(p,x,y,z,r,m,sy=1){ const o=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),m); o.position.set(x,y,z); o.scale.y=sy; o.castShadow=true; p.add(o); return o; }
 // wall plane from (x1,z1) to (x2,z2); the visible side is to the left of travel, so walls vanish when seen from outside
 function wall(x1,z1,x2,z2,y0=0,y1=R.H,m=mat.wall){ const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz);
-  const o=new THREE.Mesh(new THREE.PlaneGeometry(len,y1-y0),m); o.position.set((x1+x2)/2,(y0+y1)/2,(z1+z2)/2); o.rotation.y=-Math.atan2(dz,dx); o.receiveShadow=true; tgt.add(o); return o; }
+  const o=new THREE.Mesh(new THREE.PlaneGeometry(len,y1-y0),m); o.position.set((x1+x2)/2,(y0+y1)/2,(z1+z2)/2); o.rotation.y=-Math.atan2(dz,dx); o.receiveShadow=true; o.castShadow=true; tgt.add(o); return o; }
 function along(x1,z1,x2,z2,off,thick,y,h,m,extra=0){ const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),nx=-dz/len,nz=dx/len;
   const o=new THREE.Mesh(new THREE.BoxGeometry(len+extra,h,thick),m); o.position.set((x1+x2)/2+nx*off,y+h/2,(z1+z2)/2+nz*off); o.rotation.y=-Math.atan2(dz,dx); tgt.add(o); return o; }
-function slab(pts,y,m,up){ const s=new THREE.Shape(pts.map(([x,z])=>new THREE.Vector2(x,up?-z:z))); const o=new THREE.Mesh(new THREE.ShapeGeometry(s),m); o.rotation.x=up?-PI/2:PI/2; o.position.y=y; o.receiveShadow=up; tgt.add(o); return o; }
+function slab(pts,y,m,up){ const s=new THREE.Shape(pts.map(([x,z])=>new THREE.Vector2(x,up?-z:z))); const o=new THREE.Mesh(new THREE.ShapeGeometry(s),m); o.rotation.x=up?-PI/2:PI/2; o.position.y=y; o.receiveShadow=up; o.castShadow=!up; tgt.add(o); return o; }
 
 /* ---------- Room shell ---------- */
 function buildShell(){
@@ -408,6 +431,7 @@ function buildShell(){
   const cz=D+c.dep; wall(cx1,D,cx1,cz,0,H); wall(cx1,cz,c.x0,cz,0,H); wall(c.x0,cz,c.x0,D,0,H);
   slab([[c.x0,D],[cx1,D],[cx1,cz],[c.x0,cz]],0.02,mat.floor,true); slab([[c.x0,D],[cx1,D],[cx1,cz],[c.x0,cz]],H,mat.ceil,false);
   bx(shell,c.x0,66,D+8,c.w,1,c.dep-8,mat.white,false); cyl(shell,c.x0+c.w/2,62,D+13,.6,c.w,mat.metal).rotation.z=PI/2;
+  if(curOpts().oc==='doors'){ bx(shell,c.x0,0,D-1.6,c.w/2+1.5,c.h,1,mat.white,false); bx(shell,c.x0+c.w/2-1.5,0,D-2.8,c.w/2+1.5,c.h,1,mat.white,false); }
   bx(shell,c.x0-2.5,0,D-.5,2.5,c.h+2.5,1,mat.white,false); bx(shell,cx1,0,D-.5,2.5,c.h+2.5,1,mat.white,false); bx(shell,c.x0-2.5,c.h,D-.5,c.w+5,2.5,1,mat.white,false);
   // room door: frame, leaf swung open against the entry's side wall, a strip of hallway beyond
   bx(shell,dr.x0-2,0,n.z1-.6,2,dr.h+2,1,mat.white,false); bx(shell,dx1,0,n.z1-.6,2,dr.h+2,1,mat.white,false); bx(shell,dr.x0-2,dr.h,n.z1-.6,dr.w+4,2,1,mat.white,false);
@@ -469,24 +493,30 @@ function prep(r){ r.m=r.poly.map(p=>P(...p)); let a=0; for(let i=0;i<r.m.length;
   r.rs=(r.rects||[null]).map(q=>{ if(!q) return r.box; const [a1,b1]=P(q[0],q[1]),[a2,b2]=P(q[2],q[3]); return {x0:Math.min(a1,a2),x1:Math.max(a1,a2),z0:Math.min(b1,b2),z1:Math.max(b1,b2)}; }); return r; }
 HOUSE.rooms.forEach(prep);
 // Variant: the utility closet by the foyer removed, so the living room runs through to the foyer
-const OPEN_ROOMS=HOUSE.rooms.filter(r=>r.key!=='util'&&r.key!=='living').concat([prep({key:'living',name:'Living + dining',size:'20′ × 13′7″ · dining 12′8″ × 8′1″',poly:[[193.5,29],[392,29],[392,164],[350.5,164],[350.5,204.5],[319.5,204.5],[319.5,222],[193.5,222]],rects:[[193.5,29,392,164],[193.5,164,350.5,204.5],[193.5,204.5,319.5,222]],at:[280,105]})]);
-HOUSE.openings.push({a:[350.5,165],b:[350.5,204],k:'open',only:'open'});
+const OPEN_ROOMS=HOUSE.rooms.filter(r=>!['util','pantry','living'].includes(r.key)).concat([prep({key:'living',name:'Living + dining',size:'20′ × 13′7″ · dining 12′8″ × 8′1″',poly:[[193.5,29],[392,29],[392,164],[350.5,164],[350.5,222],[193.5,222]],rects:[[193.5,29,392,164],[193.5,164,350.5,222]],at:[280,105]})]);
+HOUSE.openings.push({a:[350.5,165],b:[350.5,226],k:'open',only:'open'},{a:[288,223],b:[348,223],k:'open',only:'open'});
+for(const o of HOUSE.openings){ if((o.k==='cased'&&o.a[0]===288)||(o.k==='panel'&&(o.a[0]===349.3||o.a[0]===323))) o.not='open'; }
 let ROOMS=HOUSE.rooms, OPENS=[];
 for(const o of HOUSE.openings){ o.A=P(...o.a); o.B=P(...o.b); o.sill=o.k==='window'?(o.sill??40):0; o.top=o.top??(o.k==='window'?81.5:o.k==='door'||o.k==='panel'?80:o.k==='cased'?80:R.H); }
 const HB=(()=>{ const all=[...HOUSE.rooms.map(r=>r.box),{x0:R.nook.x0,x1:R.W,z0:0,z1:R.nook.z1},...HOUSE.slabs.map(sl=>{ const m=sl.poly.map(p=>P(...p)); return {x0:m[0][0],x1:m[2][0],z0:m[2][1],z1:m[0][1]}; })]; return {x0:Math.min(...all.map(b=>b.x0)),x1:Math.max(...all.map(b=>b.x1)),z0:Math.min(...all.map(b=>b.z0)),z1:Math.max(...all.map(b=>b.z1))}; })();
 function boxAlong(a,b,y,h,thick,m,extra=0){ const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz); const o=new THREE.Mesh(new THREE.BoxGeometry(len+extra,h,thick),m); o.position.set((a[0]+b[0])/2,y+h/2,(a[1]+b[1])/2); o.rotation.y=-Math.atan2(dz,dx); house.add(o); return o; }
 
 /* ---------- Fixed things in the other rooms, placed from the owner's photos (sizes are estimates) ---------- */
-function buildFixed(){
+function buildFixed(open){
   const h=house;
   // living room: fireplace on the west wall with the TV above it
-  const wz=523.6, fx=-102; bx(h,fx-27,0,wz-4,54,36,4,mat.black); bx(h,fx-17,6,wz-4.6,34,22,.8,mat.metal,false); bx(h,fx-35,0,wz-22,70,1,18,mat.counter);
+  const wz=523.6, fx=-102; bx(h,fx-27,0,wz-4,54,36,4,mat.black); bx(h,fx-17,6,wz-4.6,34,22,.8,mat.fire,false);
+  const disc=(x,z,r=3)=>{ const o=new THREE.Mesh(new THREE.CircleGeometry(r,20),mat.canH); o.rotation.x=PI/2; o.position.set(x,R.H-.15,z); h.add(o); };
+  disc(-82,404,5); for(const [x,z] of [[-130,330],[-130,480],[-35,330],[-35,480],[20,420],[20,480],[-50,120]]) disc(x,z);          // living, dining, primary
+  for(const z of [380,430,480]) disc(127,z,6);                                                                                    // kitchen
+  bx(h,-124,76,221.2,22,4,2,mat.canH,false); bx(h,-137,76,212,22,4,1.6,mat.canH,false); bx(h,291,R.H-3,440,48,2,10,mat.canH,false);   // bath vanity lights, garage shop light bx(h,fx-35,0,wz-22,70,1,18,mat.counter);
   rb(h,fx-32.7,46,wz-2.2,65.4,36.8,1.6,mat.black,.3); const tvp=new THREE.Mesh(new THREE.PlaneGeometry(64.2,35.6),mat.screenOff); tvp.rotation.y=PI; tvp.position.set(fx,64.4,wz-2.3); h.add(tvp); rb(h,fx-20,40,wz-5,40,3,4,mat.black,.8);
   // kitchen: sink run on the south wall, range and fridge on the north wall
   const K={x0:72.3,x1:182.6,z0:337.4,z1:523.6};
-  rb(h,K.x1-25,0,K.z0+2,25,34.5,K.z1-K.z0-4,mat.white,.2); bx(h,K.x1-26,34.5,K.z0+2,26,1.5,K.z1-K.z0-4,mat.counter);
+  const run=(open?496:K.z1-2)-(K.z0+2); rb(h,K.x1-25,0,K.z0+2,25,34.5,run,mat.white,.2); bx(h,K.x1-26,34.5,K.z0+2,26,1.5,run,mat.counter);
+  if(open){ const pt=T.pantryCab; rb(h,K.x1-pt.d,0,K.z1-1-pt.w,pt.d,pt.h,pt.w,mat.white,.3); bx(h,K.x1-pt.d-.4,3,K.z1-1-pt.w/2-.2,.4,pt.h-6,.4,mat.metal,false); }
   bx(h,K.x1-25.5,2,430,.6,31,24,mat.steel,false); bx(h,K.x1-22,35.3,462,18,.9,30,mat.steel,false);
-  rb(h,K.x1-13,54,K.z0+2,13,30,110,mat.white,.2); rb(h,K.x1-13,54,480,13,30,36,mat.white,.2);
+  rb(h,K.x1-13,54,K.z0+2,13,30,110,mat.white,.2); rb(h,K.x1-13,54,open?456:480,13,30,36,mat.white,.2);
   rb(h,K.x0,0,411,25,34.5,44,mat.white,.2); bx(h,K.x0,34.5,411,26,1.5,44,mat.counter);
   rb(h,K.x0,0,455,27,36,30,mat.black,.3); bx(h,K.x0,36,455,3,6,30,mat.black); rb(h,K.x0,0,486,31,70,36,mat.black,.4);
   // hall bath: shower across the window end, vanity and toilet on the east wall
@@ -512,7 +542,7 @@ function buildLot(){
   tgt=house;
   slab(LOT,-3,mat.mulch,true);
   slab([[-171,-2],[-171,267],[-259,271],[-302,305],[-302,600],[-545,600],[-545,-2]],-2.7,mat.turf,true);                                   // lawn
-  slab([[-167,267],[-167,668],[-585,652],[-585,600],[-302,600],[-302,305],[-259,271]],-1.5,mat.patio,true);                               // back patio with the path down the west side of the lawn
+  slab([[-167,267],[-167,668],[-302,662],[-302,305],[-259,271]],-1.5,mat.patio,true); slab([[-302,600],[-302,662],[-585,652],[-585,600]],-2.2,mat.gravel,true);                               // back patio with the path down the west side of the lawn
   slab([[-88,528],[-88,670],[-167,668],[-167,528]],-1.5,mat.patio,true);
   slab([[825,-128],[845,140],[735,147],[658,168],[581,211],[530,275],[509,296],[450,335],[187,335],[187,284],[156,284],[156,-90]],-2.4,mat.paver,true);   // driveway
   slab([[735,147],[735,680],[573,680],[573,467],[522,424],[522,296],[530,275],[581,211],[658,168]],-2.2,mat.gravel,true);                 // front planting bed
@@ -527,7 +557,7 @@ function buildLot(){
 }
 
 function buildHouse(open){
-  clear(house); clear(hlabels); clear(llabels); ROOMS=open?OPEN_ROOMS:HOUSE.rooms; OPENS=HOUSE.openings.filter(o=>open?!(o.k==='panel'&&o.a[0]===349.3):o.only!=='open');
+  clear(house); clear(hlabels); clear(llabels); ROOMS=open?OPEN_ROOMS:HOUSE.rooms; OPENS=HOUSE.openings.filter(o=>open?o.not!=='open':o.only!=='open');
   tgt=house; const H=R.H, fm={tile:mat.tile,concrete:mat.concrete,terra:mat.terra};
   for(const r of ROOMS){
     bx(house,r.box.x0-4,-2.6,r.box.z0-4,r.box.x1-r.box.x0+8,1.4,r.box.z1-r.box.z0+8,mat.plinth,false);       // wall thickness, seen in plan view
@@ -541,7 +571,7 @@ function buildHouse(open){
       solid(t,L); }
   }
   for(const o of OPENS){ const a=o.A,b=o.B,dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz),ux=dx/L,uz=dz/L;
-    if(o.k==='panel'){ boxAlong(a,b,0,80,1.6,o.m==='mirror'?mat.mirror:mat.white); continue; }
+    if(o.k==='panel'){ boxAlong(a,b,0,80,1.6,o.m==='mirror'&&curOpts().pc!=='white'?mat.mirror:mat.white); continue; }
     if(o.k==='window'){ const g=new THREE.Mesh(new THREE.PlaneGeometry(L,o.top-o.sill),mat.glass2); g.position.set((a[0]+b[0])/2,(o.sill+o.top)/2,(a[1]+b[1])/2); g.rotation.y=-Math.atan2(dz,dx); house.add(g);
       boxAlong(a,b,o.sill,1.4,2.2,mat.black); boxAlong(a,b,o.top-1.4,1.4,2.2,mat.black); boxAlong(a,b,o.sill-1,1,7,mat.white); boxAlong(a,[a[0]+ux*1.4,a[1]+uz*1.4],o.sill,o.top-o.sill,2.2,mat.black); boxAlong([b[0]-ux*1.4,b[1]-uz*1.4],b,o.sill,o.top-o.sill,2.2,mat.black); continue; }
     boxAlong(a,b,-.05,.08,7.5,mat.sill);                                                                      // floor through the doorway
@@ -552,9 +582,9 @@ function buildHouse(open){
   for(const r of ROOMS){ if(r.small) continue; label(r.name,r.c[0]-8,6,r.c[1],15); label(r.size,r.c[0]+10,6,r.c[1],10); }
   for(const sl of HOUSE.slabs){ label(sl.name,sl.c[0]-6,6,sl.c[1],12); label(sl.size,sl.c[0]+8,6,sl.c[1],9); }
   label('Office + music room',64,6,66,15); label('13′3″ × 14′10″',82,6,66,10);
-  if(open) label('Utility closet removed',5,6,352,9);
+  if(open) label('Closet island removed',20,6,352,9);
   labelTgt=dims;
-  buildFixed(); buildLot();
+  buildFixed(open); buildLot(); shadowsDirty();
 }
 
 /* ---------- Catalog: every item type, its real size, where the size comes from, and how to draw it ---------- */
@@ -639,9 +669,11 @@ const T = {
   art0:{name:'Your ocean canvas (sunset)',cat:'Yours',kind:'wall',w:24,d:1.2,h:16,src:SRC.photo,y0:52,build(g,t){ bx(g,-12,0,.1,24,16,1.2,mat.white); const p=new THREE.Mesh(new THREE.PlaneGeometry(24,16),mat.art0); p.position.set(0,8,1.32); g.add(p); }},
   art1:{name:'Your ocean canvas (shore)',cat:'Yours',kind:'wall',w:24,d:1.2,h:16,src:SRC.photo,y0:52,build(g,t){ bx(g,-12,0,.1,24,16,1.2,mat.white); const p=new THREE.Mesh(new THREE.PlaneGeometry(24,16),mat.art1); p.position.set(0,8,1.32); g.add(p); }},
   // ---- things already in the other rooms, sized by eye from the owner's photos ----
-  sectional:{name:'Your sectional sofa',cat:'Living room',kind:'floor',w:120,d:100,h:30,src:SRC.photo,build(g){
-    rb(g,-60,3,-50,120,14,40,mat.corduroy,2); rb(g,-60,3,-50,120,27,10,mat.corduroy,2.5); rb(g,-60,3,-50,9,22,40,mat.corduroy,2); rb(g,51,3,-50,9,22,40,mat.corduroy,2);
-    for(let i=0;i<3;i++) rb(g,-50+i*34,17,-39,33,6,28,mat.cream,2); rb(g,-60,3,-10,40,14,60,mat.corduroy,2); rb(g,-58,17,-10,36,5,56,mat.cream,2); rb(g,8,3,6,42,15,42,mat.corduroy,2); }},
+  sectional:{name:'Your sectional sofa',cat:'Living room',kind:'floor',w:120,d:110,h:30,src:SRC.photo+' (an L: one arm along a wall, one facing the TV)',build(g,t,it){
+    const s=it&&it.flip?-1:1, X=(x,w)=>s>0?x:-x-w;
+    rb(g,-60,3,-55,120,14,40,mat.corduroy,2); rb(g,-60,3,-55,120,27,10,mat.corduroy,2.5); rb(g,X(51,9),3,-55,9,22,40,mat.corduroy,2);      // arm facing the TV
+    for(let i=0;i<2;i++) rb(g,X(-18+i*35,34),17,-44,34,6,28,mat.cream,2);
+    rb(g,X(-60,40),3,-15,40,14,70,mat.corduroy,2); rb(g,X(-60,10),3,-55,10,27,110,mat.corduroy,2.5); rb(g,X(-49,28),17,-12,28,6,65,mat.cream,2); }},                // arm along the wall
   rugLiving:{name:'Your living room rug',cat:'Living room',kind:'floor',flat:1,w:120,d:96,h:.4,src:SRC.photo,build(g,t){ rb(g,-t.w/2,0,-t.d/2,t.w,.4,t.d,mat.rugLight,0,false); }},
   monstera:{name:'Your monstera',cat:'Living room',kind:'floor',w:36,d:36,h:54,src:SRC.photo,build(g){ cyl(g,0,0,0,7,12,mat.pot,20,8.5); for(const [x,y,z,r] of [[0,30,0,14],[9,38,6,11],[-10,36,-6,11],[4,46,-8,9],[-6,24,9,10]]) ball(g,x,y,z,r,(x>0?mat.leaf:mat.leafDark),.8); }},
   diningTable:{name:'Your dining table',cat:'Dining',kind:'floor',w:72,d:36,h:30,src:SRC.photo,build(g){ rb(g,-36,28.5,-18,72,1.5,36,mat.teak,.3); for(const x of [-33,30.5]) for(const z of [-15.5,13]) bx(g,x,0,z,2.5,28.5,2.5,mat.teak); }},
@@ -660,6 +692,21 @@ const T = {
   firePit:{name:'Fire pit table',cat:'Outdoors',kind:'floor',w:36,d:36,h:22,src:SRC.photo,build(g){ cyl(g,0,0,0,15,22,mat.concrete,24,18); cyl(g,0,21.6,0,14,.6,mat.black); }},
   patioChair:{name:'Patio chair',cat:'Outdoors',kind:'floor',w:28,d:30,h:34,src:SRC.photo,build(g){ rb(g,-13,12,-14,26,6,26,mat.cream,2); rb(g,-13,16,-15,26,18,5,mat.cream,2); for(const x of [-14,12]){ bx(g,x,0,-14,2,22,2,mat.metal); bx(g,x,0,12,2,22,2,mat.metal); bx(g,x,22,-14,2,1.5,28,mat.metal); } }},
   umbrella:{name:'Patio umbrella',cat:'Outdoors',kind:'floor',w:108,d:108,h:96,src:SRC.photo,build(g){ cyl(g,0,0,0,11,3,mat.black); cyl(g,0,3,0,1,90,mat.metal); cyl(g,0,78,0,54,16,mat.cream,24,2); }},
+  // ---- new pieces used by the layout options ----
+  ottoman:{name:'Your ottoman',cat:'Living room',kind:'floor',w:42,d:42,h:17,src:SRC.photo,build(g){ rb(g,-21,3,-21,42,14,42,mat.corduroy,2); }},
+  accentChair:{name:'Accent chair',cat:'Living room',kind:'floor',...prod('accentChair',{w:30,d:32,h:32,src:SRC.typical}),build(g,t){ const w=t.w,d=t.d,h=t.h; rb(g,-w/2,5,-d/2,w,12,d,mat.cream,2); rb(g,-w/2,5,-d/2,w,h-5,7,mat.cream,2); rb(g,-w/2,5,-d/2,5,19,d,mat.cream,1.5); rb(g,w/2-5,5,-d/2,5,19,d,mat.cream,1.5); for(const x of [-w/2+2,w/2-3.5]) for(const z of [-d/2+2,d/2-3.5]) bx(g,x,0,z,1.5,5,1.5,mat.teak); }},
+  sideTable:{name:'Side table',cat:'Living room',kind:'floor',...prod('sideTable',{w:18,d:18,h:22,src:SRC.typical}),build(g,t){ cyl(g,0,t.h-1.2,0,t.w/2,1.2,mat.teak); cyl(g,0,0,0,.9,t.h-1.2,mat.black); cyl(g,0,0,0,t.w/3,.6,mat.black); }},
+  entryConsole:{name:'Entry console',cat:'Foyer',kind:'floor',...prod('entryConsole',{w:40,d:12,h:30,src:SRC.typical}),build(g,t){ rb(g,-t.w/2,t.h-1.5,-t.d/2,t.w,1.5,t.d,mat.teak,.2); for(const x of [-t.w/2+1,t.w/2-2.5]) for(const z of [-t.d/2+1,t.d/2-2.5]) bx(g,x,0,z,1.5,t.h-1.5,1.5,mat.teak); bx(g,-t.w/2+2,8,-t.d/2+1,t.w-4,.8,t.d-2,mat.teak); plant(g,t.w/2-8,t.h,0,.75); }},
+  bedGuest:{name:'Guest bed',cat:'Second bedroom',kind:'floor',...prod('bedGuest',{w:64,d:86,h:46,src:SRC.typical}),build(g,t){ const w=t.w,d=t.d; rb(g,-w/2+1,5,-d/2+3,w-2,9,d-4,mat.bedframe,1); rb(g,-30,14,-d/2+3,60,10,80,mat.white,2); rb(g,-30.5,22,-d/2+27,61,3,57,mat.fabric,1.4); for(const x of [-27,2]) rb(g,x,24,-d/2+5,25,5,16,mat.cream,2); rb(g,-w/2,0,-d/2,w,t.h,3,mat.bedframe,.8); }},
+  dresserNew:{name:'Dresser',cat:'Second bedroom',kind:'floor',...prod('dresserNew',{w:58,d:18,h:33,src:SRC.typical}),build(g,t){ rb(g,-t.w/2,3,-t.d/2,t.w,t.h-3,t.d,mat.teak,.3); for(const y of [5,14.5,24]) for(const x of [-t.w/2+1.5,.5]) bx(g,x,y,t.d/2,t.w/2-2,8.5,.4,mat.wood,false); for(const x of [-t.w/2+2,t.w/2-4]) bx(g,x,0,-t.d/2+2,2,3,t.d-4,mat.black); }},
+  rug8x10:{name:'Rug, 8 × 10',cat:'Rugs',kind:'floor',flat:1,...prod('rug8x10',{w:120,d:96,h:.4,src:SRC.typical}),build(g,t){ rb(g,-t.w/2,0,-t.d/2,t.w,.4,t.d,mat.rugLight,0,false); }},
+  rug9x12:{name:'Rug, 9 × 12',cat:'Rugs',kind:'floor',flat:1,...prod('rug9x12',{w:144,d:108,h:.4,src:SRC.typical}),build(g,t){ rb(g,-t.w/2,0,-t.d/2,t.w,.4,t.d,mat.rugLight,0,false); }},
+  outdoorSofa:{name:'Outdoor loveseat',cat:'Outdoors',kind:'floor',...prod('outdoorSofa',{w:54,d:30,h:30,src:SRC.typical}),build(g,t){ const w=t.w,d=t.d; rb(g,-w/2,8,-d/2,w,5,d,mat.metal,.5); rb(g,-w/2+2,13,-d/2+2,w-4,6,d-4,mat.cushion,2); rb(g,-w/2+2,17,-d/2,w-4,t.h-17,6,mat.cushion,2); for(const x of [-w/2,w/2-2]){ bx(g,x,0,-d/2,2,22,2,mat.metal); bx(g,x,0,d/2-2,2,22,2,mat.metal); bx(g,x,22,-d/2,2,1.5,d,mat.metal); } }},
+  outdoorDining:{name:'Outdoor dining table',cat:'Outdoors',kind:'floor',...prod('outdoorDining',{w:72,d:38,h:29,src:SRC.typical}),build(g,t){ rb(g,-t.w/2,t.h-1.5,-t.d/2,t.w,1.5,t.d,mat.teak,.3); for(const x of [-t.w/2+3,t.w/2-5.5]) for(const z of [-t.d/2+3,t.d/2-5.5]) bx(g,x,0,z,2.5,t.h-1.5,2.5,mat.metal);
+    for(const x of [-t.w/3,0,t.w/3]) for(const s of [-1,1]){ rb(g,x-9,16,s*(t.d/2+4)-9,18,2,18,mat.cushion,.8); bx(g,x-9,18,s*(t.d/2+13)-.7,18,14,1.4,mat.metal); } }},
+  outdoorRug:{name:'Outdoor rug',cat:'Outdoors',kind:'floor',flat:1,...prod('outdoorRug',{w:120,d:96,h:.3,src:SRC.typical}),build(g,t){ rb(g,-t.w/2,0,-t.d/2,t.w,.3,t.d,mat.rug,0,false); }},
+  planter:{name:'Large planter',cat:'Outdoors',kind:'floor',...prod('planter',{w:20,d:20,h:20,src:SRC.typical}),build(g,t){ cyl(g,0,0,0,t.w/2-2,t.h,mat.black,20,t.w/2); ball(g,0,t.h+9,0,t.w*.55,mat.leaf,.9); ball(g,4,t.h+18,3,t.w*.4,mat.leafDark); }},
+  pantryCab:{name:'Pantry cabinet',cat:'Kitchen',kind:'floor',...prod('pantryCab',{w:24,d:24,h:84,src:SRC.typical}),build(g,t){ rb(g,-t.w/2,0,-t.d/2,t.w,t.h,t.d,mat.white,.3); }},
 };
 const WALLS = {
   back:{name:'back wall',rot:0,pos:u=>[u,0],min:0,max:R.W,plane:new THREE.Plane(new THREE.Vector3(0,0,1),0),u:p=>p.x},
@@ -677,7 +724,7 @@ function defaults(deskW){
   const lw=T.loveseat.w, ld=T.loveseat.d, wc=R.win.from+R.win.w/2;
   return [
     F('rug',72,80), F(dk,dx,.5+T[dk].d/2), F('chair',dx+3,T[dk].d+17,2), F('keyboard',kx,7.5), F('kbench',kx,13.5+9+T.kbench.d/2),
-    F('console',.5+7.5,36+63.5/2,1), F('loveseat',R.W-.5-ld/2,wc,3), F('floorLamp',R.W-9,R.D-10), F('plantTall',104,R.D-15,1), F('cabinet',R.nook.x0+.5+7.2,114,1),
+    F('console',.5+7.5,36+63.5/2,1), F('loveseat',R.W-.5-ld/2,wc,3), F('floorLamp',R.W-9,R.D-10), F('cabinet',R.nook.x0+.5+7.2,114,1),
     Wl('tv','tv',36+63.5/2), Wl('guitarA','back',kx-12), Wl('guitarE','back',kx+12),
     Wl('panel','back',dx-26), Wl('panel','back',dx), Wl('panel','back',dx+26),
     Wl('shelf','window',27), Wl('art0','door',111), Wl('art1','door',138),
@@ -686,11 +733,11 @@ function defaults(deskW){
 // The rest of the house as it is today (the keyboard and guitars are left out: the proposal moves them into the office)
 function houseItems(){ const F=(t,x,z,rot=0)=>({id:nextId++,t,x,z,rot});
   return [
-    F('rugLiving',-95,440), F('sectional',-95,405), F('monstera',-146,503),
+    F('rugLiving',-98,420), F('sectional',-103,385), F('ottoman',-88,407), F('monstera',-146,503), F('plantTall',-150,300,1),
     F('rugDining',22,455,1), F('diningTable',22,455,1), F('diningChair',-4,437,1), F('diningChair',-4,473,1), F('diningChair',48,437,3), F('diningChair',48,473,3),
     F('rugPrimary',-86,70), F('bedQueen',-86,43.5), F('nightstand',-42,8.5), F('nightstand',-130,8.5), F('dresser',-121,149,2),
     F('runner',-44,215,1), F('mgb',300,420,2), F('washer',205,575,2), F('washer',234,575,2),
-    F('sauna',-236,505), F('firePit',-250,440), F('patioChair',-222,410,3), F('patioChair',-282,468,1), F('umbrella',-292,395),
+    F('sauna',-264,629), F('firePit',-250,440), F('patioChair',-222,410,3), F('patioChair',-282,468,1), F('umbrella',-292,395),
   ];
 }
 
@@ -700,42 +747,62 @@ const nth=(L,t,n=0)=>L.filter(i=>i.t===t)[n], put=(L,t,n,p)=>{ const i=nth(L,t,n
 const src=(u,t)=>`<a href="${u}" target="_blank" rel="noopener">${t}</a>`;
 const TATLER='https://www.tatlerasia.com/homes/architecture-design/feng-shui-design-tips-architect-cliff-tan-dear-modern-tiktok', BUSTLE='https://www.bustle.com/life/what-is-feng-shui-bedroom-layout-cliff-tan-tiktok-dearmodern';
 const EH_LIV='https://stylebyemilyhenderson.com/?p=141686', EH_BED='https://stylebyemilyhenderson.com/bedroom-design-rules', EH_DIN='https://stylebyemilyhenderson.com/dining-room-rules';
+const add=(L,t,x,z,rot=0,ex={})=>{ if(T[t]) L.push({id:nextId++,t,x,z,rot,...ex}); }, rm=(L,t,n=0)=>{ const i=nth(L,t,n); if(i) L.splice(L.indexOf(i),1); };
+// shared pieces of the proposals
+function guestRoom(L,two){ const b=T.bedGuest, zc=280.4-b.d/2; add(L,'bedGuest',82.5,zc,2); add(L,'nightstand',82.5+b.w/2+12,271.5,2); if(two) add(L,'nightstand',82.5-b.w/2-12,271.5,2);
+  add(L,'rug8x10',82.5,zc-18,0); add(L,'dresserNew',15.5+T.dresserNew.d/2,231,1); }
+function patioSet(L,rug){ rm(L,'patioChair',1); rm(L,'patioChair',0); rm(L,'firePit'); rm(L,'umbrella');
+  const s=T.outdoorSofa; if(rug) add(L,'outdoorRug',-232,370,1); add(L,'outdoorSofa',-169-s.d/2,370,3); add(L,'firePit',-232,370); add(L,'patioChair',-282,345,1); add(L,'patioChair',-282,396,1);
+  add(L,'umbrella',-245,540); add(L,'planter',-180,292); add(L,'planter',-180,500); add(L,'outdoorDining',45,600,0); add(L,'planter',-70,545); }
 const DESIGNS={
   base:{name:'As planned',blurb:'Your office proposal, and the rest of the house as it is today.'},
-  dearmodern:{name:'Dear Modern',blurb:'Cliff Tan\'s feng shui placement rules.',desk:72,apply(L){
-    put(L,'desk72',0,{x:54.5,z:54,rot:2}); put(L,'chair',0,{x:57,z:22,rot:0});
-    put(L,'keyboard',0,{x:143.5,z:28,rot:3}); put(L,'kbench',0,{x:128,z:28,rot:3}); put(L,'guitarA',0,{u:112}); put(L,'guitarE',0,{u:134});
-    put(L,'panel',0,{u:28.5}); put(L,'panel',1,{u:54.5}); put(L,'panel',2,{u:80.5}); put(L,'loveseat',0,{z:85});
-    put(L,'sectional',0,{x:-102.8,z:335.5}); put(L,'rugLiving',0,{x:-102.8,z:395});
-    put(L,'bedQueen',0,{x:-108}); put(L,'nightstand',0,{x:-65}); put(L,'nightstand',1,{x:-151}); put(L,'rugPrimary',0,{x:-108}); },
+  dearmodern:{name:'Dear Modern',blurb:'Cliff Tan\'s feng shui placement rules.',desk:72,opts:{pc:'white',oc:'open'},apply(L){
+    // office: desk by the window wall, facing the door; lounge half keeps a clear line from loveseat to TV
+    put(L,'desk72',0,{x:99.25,z:37.5,rot:1}); put(L,'chair',0,{x:132,z:37.5,rot:3});
+    put(L,'keyboard',0,{x:46,z:7.5,rot:0}); put(L,'kbench',0,{x:46,z:28.5,rot:0}); put(L,'guitarA',0,{u:34}); put(L,'guitarE',0,{u:58});
+    const c=nth(L,'console'); if(c){ c.t='consoleSm'; c.x=.5+T.consoleSm.d/2; c.z=67; } put(L,'tv',0,{u:67});
+    put(L,'loveseat',0,{z:98}); put(L,'floorLamp',0,{x:141,z:59.5}); put(L,'rug',0,{x:65,z:98});
+    rm(L,'panel',2); put(L,'panel',0,{wall:'window',u:13}); put(L,'panel',1,{wall:'window',u:39}); rm(L,'shelf');
+    // primary: bed out of line with the door
+    put(L,'bedQueen',0,{x:-108}); put(L,'nightstand',0,{x:-65}); put(L,'nightstand',1,{x:-151}); put(L,'rugPrimary',0,{x:-108});
+    // living: a chair against the south wall facing the sofa arm on the north wall
+    add(L,'accentChair',-2-T.accentChair.d/2,354,3); add(L,'sideTable',-16,382);
+    add(L,'entryConsole',40,285.4+T.entryConsole.d/2,0); guestRoom(L,false); patioSet(L,false); },
     notes:[
-      `<b>Primary bedroom:</b> the bed slides 22″ toward the window wall so its foot no longer points at the door. His rule: the bed should see the door without facing it (${src(TATLER,'Tatler interview')}).`,
-      `<b>Not fixed:</b> the mirrored closet doors still face the bed, and he says not to point a mirror at a bed (${src(TATLER,'same interview')}). That takes different doors or a curtain.`,
-      `<b>Office:</b> the desk comes off the wall and turns to face the door with the wall behind your chair, his "command position" (${src(TATLER,'Tatler')}, ${src(BUSTLE,'Bustle')}). The keyboard moves to the window wall to make room. Costs: only the 72″ desk fits this way, and the monitor backs and cables face the room.`,
-      `<b>Living room:</b> the sectional backs onto the east wall so the foyer and hall are in view, not behind you. As drawn it overlaps the hall opening by about 12″ and the TV ends up about 17 ft away. The sofa's size is my estimate, so measure it before trusting this one.`,
-      `He also says there is no one-size-fits-all layout, so read this as his rules applied by me, not his design.`]},
+      `<b>Office, reworked:</b> the desk now sits by the window wall with a solid wall behind your chair and the door in view (his "command position", ${src(TATLER,'Tatler')}; he also gives the window spot to a desk, ${src(BUSTLE,'Bustle')}). It no longer stands between the loveseat and the TV: the back half of the room is for work and music, the door half for the TV. Only the 72″ desk fits, and the console swaps to the 54″ one.`,
+      `<b>Primary bedroom:</b> the bed slides 22″ so its foot no longer points at the door, and the closet doors are set to plain white because he says not to point a mirror at a bed (${src(TATLER,'Tatler')}). You can switch the doors back below.`,
+      `<b>Living room:</b> your sectional already has one arm on the window wall facing the entrances. An armchair goes against the opposite wall facing it, his "seating against the walls facing each other" (${src('https://www.realhomes.com/news/this-genius-tiktok-trick-will-make-your-living-room-feel-bigger-with-a-dining-table','Real Homes write-up')}).`,
+      `<b>Second bedroom:</b> furnished as a guest room, bed on the far wall so it sees the door without facing it and is not under the window.`,
+      `<b>Outside:</b> a loveseat with its back to the house looks out over the fire pit and lawn; a dining table goes on the side patio by the kitchen door.`,
+      `He says there is no one-size-fits-all layout. This is his published rules applied by me, not his design.`]},
   second:{name:'Emily Henderson',blurb:'Her published spacing rules, in inches.',apply(L){
-    const c=nth(L,'console'); if(c){ c.t='consoleSm'; c.z=36+27; c.x=.5+7.3; } put(L,'tv',0,{u:63});
-    put(L,'sectional',0,{x:-102,z:440}); put(L,'rugLiving',0,{x:-102,z:450});
-    put(L,'diningTable',0,{x:15}); put(L,'rugDining',0,{x:15}); put(L,'diningChair',0,{x:-11}); put(L,'diningChair',1,{x:-11}); put(L,'diningChair',2,{x:41}); put(L,'diningChair',3,{x:41});
-    put(L,'bedQueen',0,{x:-97}); put(L,'nightstand',0,{x:-53}); put(L,'nightstand',1,{x:-141}); put(L,'rugPrimary',0,{x:-97}); },
+    const c=nth(L,'console'); if(c){ c.t='consoleSm'; c.z=36+27; c.x=.5+T.consoleSm.d/2; } put(L,'tv',0,{u:63});
+    put(L,'sectional',0,{x:-102,z:420,flip:1}); put(L,'ottoman',0,{x:-104,z:443}); put(L,'rugLiving',0,{x:-102,z:440});
+    const r=nth(L,'rugDining'); if(r&&T.rug9x12){ r.t='rug9x12'; r.x=15; r.z=448; r.rot=1; }
+    put(L,'diningTable',0,{x:15,z:448}); put(L,'diningChair',0,{x:-11,z:430}); put(L,'diningChair',1,{x:-11,z:466}); put(L,'diningChair',2,{x:41,z:430}); put(L,'diningChair',3,{x:41,z:466});
+    put(L,'bedQueen',0,{x:-97}); put(L,'nightstand',0,{x:-53}); put(L,'nightstand',1,{x:-141}); put(L,'rugPrimary',0,{x:-97}); add(L,'bench',-97,98,0);
+    add(L,'entryConsole',40,285.4+T.entryConsole.d/2,0); guestRoom(L,true); patioSet(L,true); },
     notes:[
-      `<b>Living room:</b> she puts the sofa about 7 ft from the TV (${src(EH_LIV,'living room rules')}). The sectional moves 35″ closer and centres on the fireplace, which gets it to about 9 ft; the chaise hits the hearth before 7 ft. The 8 × 10 rug keeps the sofa's front legs on it, as she asks.`,
-      `<b>Dining:</b> the table shifts 7″ north so there is 36″ to the kitchen wall (her minimum is 24″ all round, ${src(EH_DIN,'dining rules')}). Your rug is too small by her rule of 36″ of rug past the table edge; that needs roughly a 9 × 12.`,
-      `<b>Primary bedroom:</b> the bed centres on its wall for about 34″ each side; she asks for 36″ where space allows (${src(EH_BED,'bedroom rules')}). The 8 × 10 rug shows 28″ each side, above her 24″.`,
-      `<b>Office:</b> her walkway rule is 30–36″ between large pieces. Swapping to the smaller 54″ console widens the way in from 31.8″ to about 41″.`]},
-  open:{name:'Open living',blurb:'The utility closet by the foyer removed.',open:true,apply(L){},
-    notes:['<b>What changes:</b> the 2′7″ × 3′10″ utility closet between the foyer and the dining area comes out, so the living room, dining area and foyer read as one space. The small closet next to it stays.','<b>Before anyone swings a hammer:</b> a closet like this usually holds a furnace or water heater, and one of its walls may carry load. A contractor needs to confirm; this view only shows the space.','Furniture is left where it is today so you can judge the opening on its own.']},
+      `<b>Living room:</b> the sectional turns so its short arm is on the kitchen side, which leaves the back door clear, and moves toward the TV. She puts the sofa about 7 ft from the screen (${src(EH_LIV,'living room rules')}); about 11 ft is the closest that keeps a walkway in front of the fireplace. The ottoman sits 17″ from the seat (her 16–18″) and 38″ clear of the back door.`,
+      `<b>Dining:</b> the table shifts for 36″ to the kitchen wall, and the rug becomes a 9 × 12 so there is rug past the chairs; she asks for 36″ beyond the table edge (${src(EH_DIN,'dining rules')}).`,
+      `<b>Primary bedroom:</b> bed centred with about 34″ each side (she asks for 36″ where space allows, ${src(EH_BED,'bedroom rules')}), plus a bench at the foot.`,
+      `<b>Second bedroom:</b> a guest room with the bed centred, two nightstands and an 8 × 10 rug showing 24″ or more on each side, as her bedroom rules ask.`,
+      `<b>Office:</b> the smaller 54″ console widens the way in to about 41″, inside her 30–36″ walkway rule.`,
+      `<b>Outside:</b> loveseat and two chairs around the fire pit on an outdoor rug, 4 ft apart (her seating range is 3.5–10 ft), and a dining table on the side patio.`]},
+  open:{name:'Open living',blurb:'The utility closet and pantry island removed.',open:true,apply(L){ add(L,'entryConsole',40,285.4+T.entryConsole.d/2,0); },
+    notes:['<b>What changes:</b> the whole island between the foyer, dining area and kitchen comes out: the utility closet and the small pantry. Living, dining, foyer and kitchen become one space.','<b>The pantry moves</b> to a tall cabinet in the far-left corner of the kitchen as you walk in from the foyer, at the end of the sink run.','<b>Before anyone swings a hammer:</b> a utility closet usually holds a furnace or water heater, and one of these walls may carry load. A contractor needs to confirm; this view only shows the space.']},
 };
 function makeLayout(key,deskW){ const d=DESIGNS[key], L=defaults(deskW||d.desk||78); d.apply?.(L); return L; }
 function renderDesign(){ const el=document.getElementById('segDesign'); el.innerHTML='';
   for(const k in DESIGNS){ const d=DESIGNS[k], b=document.createElement('button'); b.id='ds_'+k; b.setAttribute('aria-pressed',k===S.design); b.innerHTML=`<span>${d.name}</span><small>${d.blurb}</small>`; b.onclick=()=>{ setDesign(k); if(S.view!=='hplan'&&S.view!=='hiso') setView('hplan'); }; el.append(b); }
   const d=DESIGNS[S.design], sec=document.getElementById('designNoteSec'); sec.hidden=!(d.notes&&d.notes.length);
   if(d.notes&&d.notes.length) document.getElementById('designNote').innerHTML='<ul>'+d.notes.map(n=>`<li>${n}</li>`).join('')+'</ul>'; }
-let houseOpen=false;
+let houseOpen=false, opts={};
+const curOpts=()=>opts[S.design]||(opts[S.design]={pc:'mirror',oc:'open',...(DESIGNS[S.design].opts||{})});
+function syncOpts(){ const o=curOpts(); for(const b of document.querySelectorAll('#segPc button')) b.setAttribute('aria-pressed',b.dataset.v===o.pc); for(const b of document.querySelectorAll('#segOc button')) b.setAttribute('aria-pressed',b.dataset.v===o.oc); }
+function rebuildShells(){ clear(shell); buildShell(); buildHouse(houseOpen); buildLights(); }
 function setDesign(k){ S.design=k; if(!layouts[k]) layouts[k]=makeLayout(k); items=layouts[k]; S.sel=null;
-  if(!!DESIGNS[k].open!==houseOpen){ houseOpen=!!DESIGNS[k].open; buildHouse(houseOpen); }
-  buildLights(); refresh(); renderDesign(); }
+  houseOpen=!!DESIGNS[k].open; rebuildShells(); refresh(); renderDesign(); syncOpts(); }
 
 /* ---------- Geometry of items ---------- */
 function box(it){ const t=T[it.t]; if(t.kind==='floor'){ const odd=it.rot%2, w=odd?t.d:t.w, d=odd?t.w:t.d; return {x0:it.x-w/2,x1:it.x+w/2,z0:it.z-d/2,z1:it.z+d/2,h:t.h}; }
@@ -808,21 +875,30 @@ function buildDims(){
 }
 function buildItems(){
   clear(furn);
-  for(const it of items){ const g=new THREE.Group(); g.userData.id=it.id; T[it.t].build(g,T[it.t]); placeGroup(g,it); furn.add(g); }
-  markSel();
+  for(const it of items){ const g=new THREE.Group(); g.userData.id=it.id; T[it.t].build(g,T[it.t],it); placeGroup(g,it); furn.add(g); }
+  markSel(); shadowsDirty();
 }
+let sunDir=null, fireLight=null;
+const overview=()=>['plan','iso','hplan','hiso','lot','lotiso'].includes(S.view);
+// ceiling lights seen in the owner's photos: [x, height, z, strength]. Each room's fixtures are drawn in buildFixed().
+const HOUSE_LIGHTS=[[-115,86,400,4],[-45,86,400,4],[20,86,450,3.5],[127,86,395,3],[127,86,470,3],[-44,74,221,2.2],[-97,74,79,3.2],[-110,74,226,1.8],[-131,74,208,1.8],[315,80,462,5]];
 function buildLights(){
-  clear(lights); const {W,D,H,win}=R, L=S.lights, any=L.cans||L.fan||L.desk||L.floor||L.shelf||L.house;
+  clear(lights); const {W,D,H,win}=R, L=S.lights, any=L.cans||L.fan||L.desk||L.floor||L.shelf||L.house||L.fire;
   lights.add(new THREE.HemisphereLight(L.sun?0xffffff:0xffe6c8, L.sun?0xd9d2c8:0x2a2420, L.sun?.75:(any?.12:.05)));
   scene.environmentIntensity = L.sun?.5:(any?.1:.03);
-  if(L.sun){ const sun=new THREE.SpotLight(0xfff3e0,40,0,.42,.7,1.2); sun.position.set(W+75,105,win.from+win.w/2+10); sun.target.position.set(48,0,win.from+12);
-    sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.bias=-.0004; sun.shadow.camera.near=1; sun.shadow.camera.far=12; lights.add(sun,sun.target); }
+  sunDir=null; fireLight=null;
+  if(L.sun){ const sky=new THREE.SpotLight(0xeaf2ff,14,0,.42,.8,1.2); sky.position.set(W+75,105,win.from+win.w/2+10); sky.target.position.set(48,0,win.from+12); lights.add(sky,sky.target);   // soft sky light: the office window faces away from the sun
+    const sun=new THREE.DirectionalLight(0xfff1dc,2.6); sun.position.set(-760,1150,560); sun.target.position.set(40,0,300); sun.castShadow=!overview(); sun.shadow.mapSize.set(4096,4096);
+    const sc=sun.shadow.camera; sc.left=-15; sc.right=15; sc.top=15; sc.bottom=-15; sc.near=5; sc.far=70; sc.updateProjectionMatrix(); sun.shadow.bias=-.0006; sun.shadow.normalBias=.03; lights.add(sun,sun.target); sunDir=sun; }
+  if(L.fire){ fireLight=new THREE.PointLight(0xff8a3c,2.4,7,2); fireLight.position.set(-102,16,508); lights.add(fireLight); }
+  mat.fire.emissiveIntensity=L.fire?2.2:0; mat.canH.emissiveIntensity=L.house?2.4:.15;
   if(L.cans) for(const [x,z] of cans()){ const p=new THREE.PointLight(0xffd7a3,2.8,0,2); p.position.set(x,H-6,z); lights.add(p); }
-  if(L.house) for(const r of ROOMS){ if(r.small) continue; const p=new THREE.PointLight(0xffdcb0,r.key==='living'||r.key==='garage'?5:2.6,9,2); p.position.set(r.c[0],H-10,r.c[1]); lights.add(p); }
+  if(L.house) for(const [x,y,z,i] of HOUSE_LIGHTS){ const p=new THREE.PointLight(0xffdcb0,i,9,2); p.position.set(x,y,z); lights.add(p); }
   if(L.fan){ const p=new THREE.PointLight(0xffe0b5,3.2,0,2); p.position.set(W/2,H-R.fanDrop-3,D/2); lights.add(p); }
   mat.glass.color.set(L.sun?0xcfe3f1:0x1a2433); mat.can.emissiveIntensity=L.cans?2.4:.15; mat.fanLamp.emissiveIntensity=L.fan?2.4:.15;
   renderer.toneMappingExposure=L.sun?1:1.2;
   for(const b of document.querySelectorAll('#segLights button')) b.setAttribute('aria-pressed',!!L[b.dataset.l]);
+  shadowsDirty();
 }
 function refresh(){ buildItems(); fit(); buildDims(); renderList(); renderSel(); save(); }
 
@@ -863,7 +939,7 @@ addEventListener('pointermove',e=>{ if(!drag) return; setRay(e); const it=drag.i
     if(!t.flat&&inOffice(px,pz)&&px>=0&&pz<=R.D){ if(x-w/2<3&&z<R.nook.z0) x=w/2+.5; if(x+w/2>R.W-3) x=R.W-w/2-.5; if(z-d/2<3&&x>0) z=d/2+.5; if(z+d/2>R.D-3&&z+d/2<R.D+6&&x-w/2>=R.nook.x1) z=R.D-d/2-.5; }
     it.x=x; it.z=z; if(!valid(it)){ it.z=pz; if(!valid(it)){ it.x=px; it.z=z; if(!valid(it)){ it.z=pz; } } } }
   else { const w=WALLS[it.wall]; it.u=Math.min(Math.max(w.u(p)-drag.ou,w.min+t.w/2),w.max-t.w/2); it.y=Math.min(Math.max(p.y-drag.oy,t.y0===0?0:2),R.H-t.h); if(t.y0===0) it.y=0; }
-  const g=furn.children.find(c=>c.userData.id===it.id); if(g){ placeGroup(g,it); selBox?.update(); } });
+  const g=furn.children.find(c=>c.userData.id===it.id); if(g){ placeGroup(g,it); selBox?.update(); shadowsDirty(); } });
 addEventListener('pointerup',e=>{ if(drag){ drag=null; controls.enabled=true; refresh(); down=null; return; }
   if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<5&&e.target===renderer.domElement){ select(down.id); } down=null; });
 
@@ -894,12 +970,15 @@ function setView(v,instant){
   for(const b of document.querySelectorAll('#segView button')) b.setAttribute('aria-pressed', b.dataset.v===v);
   S.dims=s.dims===true; dims.visible=S.dims; hlabels.visible=s.dims==='house'; llabels.visible=s.dims==='house'&&(v==='lot'||v==='lotiso'); document.getElementById('togDims').setAttribute('aria-pressed',!!s.dims);
   camera.near=(v==='lot'||v==='lotiso'||v==='hplan'||v==='hiso')?1:.05; camera.updateProjectionMatrix();
+  if(sunDir){ sunDir.castShadow=!overview(); shadowsDirty(); }
   const p1=new THREE.Vector3(...s.p).multiplyScalar(I), t1=new THREE.Vector3(...s.t).multiplyScalar(I);
   if(instant||matchMedia('(prefers-reduced-motion: reduce)').matches){ camera.position.copy(p1); controls.target.copy(t1); camera.fov=s.fov; camera.updateProjectionMatrix(); controls.update(); anim=null; return; }
   anim={p0:camera.position.clone(),t0:controls.target.clone(),f0:camera.fov,p1,t1,f1:s.fov,t:performance.now()};
 }
 
 /* ---------- Panel wiring ---------- */
+document.querySelectorAll('#segPc button').forEach(b=>b.onclick=()=>{ curOpts().pc=b.dataset.v; rebuildShells(); syncOpts(); save(); });
+document.querySelectorAll('#segOc button').forEach(b=>b.onclick=()=>{ curOpts().oc=b.dataset.v; rebuildShells(); syncOpts(); save(); });
 function setScope(sc){ for(const b of document.querySelectorAll('#segScope button')) b.setAttribute('aria-pressed',b.dataset.s===sc); for(const g of document.querySelectorAll('#segView [data-scope]')) g.hidden=g.dataset.scope!==sc; }
 document.querySelectorAll('#segScope button').forEach(b=>b.onclick=()=>setView({office:'door',house:'hplan',lot:'lot'}[b.dataset.s]));
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{ for(const t of document.querySelectorAll('#tabs button')) t.setAttribute('aria-selected',t===b); for(const p of document.querySelectorAll('.pane')) p.hidden=p.dataset.pane!==b.dataset.tab; });
@@ -909,8 +988,8 @@ document.querySelectorAll('#segDesk button').forEach(b=>b.onclick=()=>{ layouts[
 document.querySelectorAll('#segLook button').forEach(b=>b.onclick=()=>{ S.look=b.dataset.v; syncLook(); save(); });
 function syncLook(){ applyLook(); for(const b of document.querySelectorAll('#segLook button')) b.setAttribute('aria-pressed',b.dataset.v===S.look); }
 document.querySelectorAll('#segLights button').forEach(b=>b.onclick=()=>{ S.lights[b.dataset.l]=S.lights[b.dataset.l]?0:1; buildLights(); buildItems(); save(); });
-document.getElementById('lightDay').onclick=()=>{ S.lights={sun:1,cans:0,fan:0,desk:0,screens:1,floor:0,shelf:0,house:0}; buildLights(); buildItems(); save(); };
-document.getElementById('lightEve').onclick=()=>{ S.lights={sun:0,cans:1,fan:0,desk:1,screens:1,floor:1,shelf:1,house:1}; buildLights(); buildItems(); save(); };
+document.getElementById('lightDay').onclick=()=>{ S.lights={sun:1,cans:0,fan:0,desk:0,screens:1,floor:0,shelf:0,house:0,fire:0}; buildLights(); buildItems(); save(); };
+document.getElementById('lightEve').onclick=()=>{ S.lights={sun:0,cans:1,fan:0,desk:1,screens:1,floor:1,shelf:1,house:1,fire:1}; buildLights(); buildItems(); save(); };
 document.getElementById('togDims').onclick=e=>{ const far=S.view==='lot'||S.view==='lotiso'||S.view==='hplan'||S.view==='hiso'||S.view.startsWith('room:'), g=far?hlabels:dims; g.visible=!g.visible; llabels.visible=g.visible&&(S.view==='lot'||S.view==='lotiso'); if(!far) S.dims=g.visible; e.currentTarget.setAttribute('aria-pressed',g.visible); };
 { const rs=document.getElementById('roomSel'); for(const r of HOUSE.rooms){ if(r.small) continue; const o=document.createElement('option'); o.value=r.key; o.textContent=r.name+' ('+r.size.split(' · ')[0]+')'; rs.append(o); } rs.onchange=()=>{ if(rs.value) setView('room:'+rs.value); }; }
 const keys={}; addEventListener('keydown',e=>{ if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return; keys[e.key.toLowerCase()]=1; }); addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=0; });
@@ -939,17 +1018,17 @@ function shot(){ const lampAt=[]; furn.traverse(o=>{ if(o.isLight){ const p=o.ge
     cans:cans().map(([x,z])=>[x*I,(R.H-1)*I,z*I]),fan:[R.W/2*I,(R.H-R.fanDrop-1)*I,R.D/2*I],win:{x:R.W*I,y:(R.win.sill+R.win.top)/2*I,z:(R.win.from+R.win.w/2)*I,w:R.win.w*I,h:(R.win.top-R.win.sill)*I}}; }
 
 /* ---------- Go ---------- */
-buildShell();
 if(!load()){ layouts={base:makeLayout('base',78)}; items=layouts.base; }
-houseOpen=!!DESIGNS[S.design].open; buildHouse(houseOpen);
-syncLook(); buildLights(); refresh(); renderDesign(); resize(); setView('door',true);
+houseOpen=!!DESIGNS[S.design].open; clear(shell); buildShell(); buildHouse(houseOpen);
+syncLook(); buildLights(); refresh(); renderDesign(); syncOpts(); resize(); setView('door',true);
 let last=performance.now();
 renderer.setAnimationLoop(now=>{ const dt=Math.min(.05,(now-last)/1000); last=now;
   if(renderer.xr.isPresenting) vrMove(dt);
   else { if(anim){ let k=Math.min(1,(now-anim.t)/700); k=k*k*(3-2*k); camera.position.lerpVectors(anim.p0,anim.p1,k); controls.target.lerpVectors(anim.t0,anim.t1,k); camera.fov=anim.f0+(anim.f1-anim.f0)*k; camera.updateProjectionMatrix(); if(k>=1) anim=null; }
     const kf=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0), kr=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);
-    if(kf||kr){ anim=null; fwd.subVectors(controls.target,camera.position); fwd.y=0; if(fwd.lengthSq()<1e-6) fwd.set(0,0,-1); fwd.normalize(); const mv=new THREE.Vector3(-fwd.z,0,fwd.x).multiplyScalar(kr).addScaledVector(fwd,kf).multiplyScalar(1.7*dt); camera.position.add(mv); controls.target.add(mv); }
+    if(kf||kr){ anim=null; fwd.subVectors(controls.target,camera.position); fwd.y=0; if(fwd.lengthSq()<1e-6) fwd.set(0,0,-1); fwd.normalize(); const mv=new THREE.Vector3(-fwd.z,0,fwd.x).multiplyScalar(kr).addScaledVector(fwd,kf).multiplyScalar((keys.shift?2:1)*Math.max(3.4,camera.position.y*.9)*dt); camera.position.add(mv); controls.target.add(mv); }
     controls.update(); }
+  if(fireLight){ const f=1+.18*Math.sin(now*.011)+.12*Math.sin(now*.027+1); fireLight.intensity=2.4*f; mat.fire.emissiveIntensity=2.2*f; }
   renderer.render(scene,camera); });
 window.__room={R,S,T,HOUSE,LOT,DESIGNS,setDesign,items:()=>items,facts:()=>facts,setView,exportGLB,shot,select};
 </script>
