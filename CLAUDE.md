@@ -53,6 +53,22 @@ drawing (good to a few inches); ceilings are assumed 96 and window heights copy 
 empty shells: no kitchen counters, bath fixtures, fireplace or furniture until the owner supplies measurements or
 photos. Catalog items can be added to any room, but the fit check only covers the office.
 
+### Photo pass (2026-11-15)
+
+From the owner's interior and yard photos, all by eye and not measured:
+
+- `buildFixed()` draws fixtures: living-room fireplace on the west wall with the TV above, kitchen (sink run on the
+  south wall, range and fridge on the north wall, terracotta floor), hall bath (shower across the window end, vanity
+  and toilet on the east wall), primary bath (shower at the south end, vanity and toilet on the west wall), primary
+  ceiling fan, mirrored closet doors.
+- `houseItems()` places today's movable things: sectional, rugs, dining table and chairs, bed, nightstands, dresser,
+  hall runner, the MGB and washer/dryer in the garage, barrel sauna, fire pit, patio chairs, umbrella. The keyboard
+  and guitars really live in the living room today; they are left out there because the office proposal moves them.
+- Window heights adjusted from photos: living sill 36, dining sill 44, bath windows 56 to 80.
+- `buildLot()`: lot side lengths from the parcel map (70 street side, 59 back, 118 and 123 sides). The street is on
+  the plan's south side (+x) and the driveway sits in the notch east of the garage. House position on the lot, lawn,
+  patios, driveway and fence are placed by eye. The owner's photos are not in this repo (public).
+
 ## Rules for the model
 
 1. Dimensional accuracy beats looks. Never say something fits until the fit check or a measurement shows it.
