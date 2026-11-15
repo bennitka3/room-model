@@ -69,6 +69,27 @@ From the owner's interior and yard photos, all by eye and not measured:
   the plan's south side (+x) and the driveway sits in the notch east of the garage. House position on the lot, lawn,
   patios, driveway and fence are placed by eye. The owner's photos are not in this repo (public).
 
+### Aerial, layout options and interface (2026-11-15)
+
+- **Lot from the aerial photo:** the house's back eave (127 px for 48 ft of house) fixes scale and rotation, about
+  4.5 inches per pixel. The lot outline, driveway, front planting bed, curved back patio and lawn are traced from
+  it, good to roughly 5 ft; the traced lot sides land within about 10% of the parcel map (70, 59, 118, 123 ft).
+  The garage roof reads about 7 ft longer toward the street than the plan's garage, unexplained (deep eave or a
+  slightly angled photo). The garage has no door into the house (owner confirmed).
+- **Layout options** (`DESIGNS`, Design tab; "As planned" switches them off in one click). Each keeps its own saved
+  item list in `layouts`.
+  - Dear Modern: Cliff Tan's rules as reported in a Tatler Asia interview and a Bustle piece (bed must not face the
+    door, command position for desk and sofa, no mirror pointing at the bed). Uses the 72 inch desk floated to face
+    the door. Known problems are written in the option's notes (sofa overlaps the hall opening as drawn).
+  - Emily Henderson: her published numbers (sofa about 7 ft from TV, 30-36 inch walkways, 36 inches around the bed,
+    24 inches around the dining table, rug sizes) from her living room, bedroom and dining rules pages.
+  - Open living: utility closet by the foyer removed (`OPEN_ROOMS`). Always flag that the closet may hold a furnace
+    or water heater and a wall may be load-bearing; a contractor has to confirm.
+  These are Claude's reading of published rules, not the designers' work. Only cite rules found on a fetched page.
+- **Interface:** the owner asked for "apple simple UI UX but keep the functionality". One panel, four tabs (View,
+  Design, Items, Check), system font, segmented controls, switches; the selected item's card floats over the view.
+  Keep new controls inside this structure instead of adding sections.
+
 ## Rules for the model
 
 1. Dimensional accuracy beats looks. Never say something fits until the fit check or a measurement shows it.

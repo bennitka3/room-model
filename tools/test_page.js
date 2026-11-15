@@ -7,15 +7,17 @@ const { chromium } = require('playwright'); const fs=require('fs');
   const errs=[]; p.on('console',m=>{if(m.type()==='error')errs.push(m.text())}); p.on('pageerror',e=>errs.push('PAGEERR '+e.message));
   await p.goto('file://'+process.cwd()+'/wrapped.html'); await p.waitForFunction(()=>window.__room,{timeout:30000}).catch(e=>errs.push('no __room'));
   await p.waitForTimeout(2500);
+  const tab=async n=>{ await p.click('#tab'+n); }; const sc=async n=>{ await tab('View'); await p.click('#sc'+n); };
   const snap=async n=>{ await p.waitForTimeout(1500); await p.screenshot({path:n+'.png'}); };
   await snap('door');
   for(const v of ['vPlan','vIso','vDesk','vMusic','vTv']){ await p.click('#'+v); await snap(v); }
-  await p.click('#lightEve'); await p.click('#vDoor'); await snap('eve');
-  await p.click('#lightDay'); await p.click('#vHplan'); await snap('house_plan'); await p.click('#vHiso'); await snap('house_iso'); await p.click('#vLot'); await snap('lot');
+  await tab('Design'); await p.click('#lightEve'); await tab('View'); await p.click('#vDoor'); await snap('eve');
+  await tab('Design'); await p.click('#lightDay'); await sc('House'); await snap('house_plan'); await p.click('#vHiso'); await snap('house_iso'); await sc('Lot'); await snap('lot'); await p.click('#vLotIso'); await snap('lot_iso'); await sc('House');
   for(const r of ['living','kitchen','hall','primary','bath1','garage']){ await p.selectOption('#roomSel',r); await snap('room_'+r); }
   await p.keyboard.down('w'); await p.waitForTimeout(600); await p.keyboard.up('w');
   // select + drag test: select the loveseat via list, then drag it in plan view
-  await p.click('#lightDay'); await p.click('#vPlan'); await p.waitForTimeout(1500);
+  for(const d of ['dearmodern','second','open']){ await tab('Design'); await p.click('#ds_'+d); await snap('design_'+d+'_panel'); await sc('House'); await snap('design_'+d); }
+  await tab('Design'); await p.click('#ds_base'); await sc('Office'); await p.click('#vPlan'); await p.waitForTimeout(1500);
   const before=await p.evaluate(()=>{ const it=window.__room.items().find(i=>i.t==='loveseat'); window.__room.select(it.id); return {x:it.x,z:it.z}; });
   // find screen position of the loveseat
   const pos=await p.evaluate(()=>{ const c=document.querySelector('canvas').getBoundingClientRect(); return {l:c.left,t:c.top,w:c.width,h:c.height}; });
@@ -25,12 +27,12 @@ const { chromium } = require('playwright'); const fs=require('fs');
   console.log('DRAG',JSON.stringify(before),JSON.stringify(after));
   await snap('dragged');
   const n0=await p.evaluate(()=>window.__room.items().length);
-  await p.selectOption('#addSel','bench'); await p.click('#addBtn'); await p.click('#selRot');
+  await tab('Items'); await p.selectOption('#addSel','bench'); await p.click('#addBtn'); await p.click('#selRot');
   const n1=await p.evaluate(()=>window.__room.items().length); await p.click('#selDel');
   const n2=await p.evaluate(()=>window.__room.items().length); console.log('ADD/REMOVE',n0,n1,n2);
-  await p.click('#desk72'); await p.click('#lookOak'); await p.click('#vDoor'); await snap('oak72');
+  await tab('Design'); await p.click('#desk72'); await p.click('#lookOak'); await tab('View'); await p.click('#vDoor'); await snap('oak72'); await tab('Check');
   console.log(await p.evaluate(()=>document.getElementById('fit').innerText));
-  await p.click('#desk78'); await p.click('#lookWalnut');
+  await tab('Design'); await p.click('#desk78'); await p.click('#lookWalnut'); await tab('View');
   await p.setViewportSize({width:400,height:800}); await p.waitForTimeout(800); await snap('phone');
   console.log('ERRORS',errs); await b.close();
 })();
