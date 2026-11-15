@@ -35,9 +35,23 @@ publish, commit.
 - Measured belongings: media console 63.5 x 15 x 25.5 (on the floor, owner is open to a smaller one that still
   hides the router and the TV/soundbar cables); Yamaha keyboard 53 wide x 12 deep, music stand top at 40 (keys drawn
   at 31); two 28" monitors, the left one vertical; 65" TV; an ergonomic office chair that stays.
-- Guessed from photos, not measured: closet opening width and position (72 wide, starting 6 from the entry corner),
-  door position on the far wall, chair size, the two ocean canvases (24 x 16), the glass cabinet (IKEA Detolf's
+- From the floor plan: the office closet opening (about 62 wide, starting 4 from the entry corner) and the door
+  position. Guessed from photos, not measured: chair size, the two ocean canvases (24 x 16), the glass cabinet (IKEA Detolf's
   listed size), guitar sizes.
+
+## The rest of the house
+
+Added 2026-11-15 from the owner's floor plan image (a real-estate style plan with printed room sizes). `HOUSE` in the
+page holds every other room as a polygon in plan pixels (about 1.205 inches per pixel; `P(px,py)` converts to inches;
+north is up on the plan, which is -x here, and east is -z). The office is the plan's lower-right bedroom: its
+159 x 178 footprint and window position matched the plan to the inch, and the 28-inch jog turned out to be the
+primary bedroom's closet. `HOUSE.openings` cuts doors, cased openings and windows into any wall they lie on.
+
+Rooms: living + dining, kitchen, foyer, hall, two baths, primary bedroom, second bedroom, garage, closets, plus
+porch and patio slabs. Room sizes are the plan's printed figures; door and window positions are read off the
+drawing (good to a few inches); ceilings are assumed 96 and window heights copy the office. The other rooms are
+empty shells: no kitchen counters, bath fixtures, fireplace or furniture until the owner supplies measurements or
+photos. Catalog items can be added to any room, but the fit check only covers the office.
 
 ## Rules for the model
 
@@ -78,7 +92,8 @@ its own was rejected as "not even close to photoreal": correct light, but simple
 4. VR on a Quest: the artifact viewer blocks headset mode, so host this page elsewhere (for example GitHub Pages
    from this repo), then test in the headset. Untested so far.
 5. Small items that sit on furniture and move with it.
-6. Other rooms, once measured. A phone scan is fine for layout; tape-measure anything where an inch matters.
+6. Furnish the other rooms: fixtures (kitchen, baths, fireplace) and furniture, from the owner's measurements or
+   photos. Extend the fit check beyond the office. Tape-measure anything where an inch matters.
 
 ## Which model
 

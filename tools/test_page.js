@@ -11,6 +11,9 @@ const { chromium } = require('playwright'); const fs=require('fs');
   await snap('door');
   for(const v of ['vPlan','vIso','vDesk','vMusic','vTv']){ await p.click('#'+v); await snap(v); }
   await p.click('#lightEve'); await p.click('#vDoor'); await snap('eve');
+  await p.click('#lightDay'); await p.click('#vHplan'); await snap('house_plan'); await p.click('#vHiso'); await snap('house_iso');
+  for(const r of ['living','kitchen','hall','primary']){ await p.selectOption('#roomSel',r); await snap('room_'+r); }
+  await p.keyboard.down('w'); await p.waitForTimeout(600); await p.keyboard.up('w');
   // select + drag test: select the loveseat via list, then drag it in plan view
   await p.click('#lightDay'); await p.click('#vPlan'); await p.waitForTimeout(1500);
   const before=await p.evaluate(()=>{ const it=window.__room.items().find(i=>i.t==='loveseat'); window.__room.select(it.id); return {x:it.x,z:it.z}; });
