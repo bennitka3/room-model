@@ -1,0 +1,7 @@
+wrapped.html
+_wrapped.html
+/*.png
+r_*/
+scene.glb
+shot.json
+node_modules/

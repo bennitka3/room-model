@@ -1,0 +1,631 @@
+<title>Office Studio Room Model</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!--
+HANDOFF NOTES FOR A NEW SESSION (read before changing this page)
+What this is: ben's measured 3D model of his home office + music room redesign. One HTML page, three.js.
+All sizes in inches; the scene is scaled to meters (x0.0254) so it is true scale in a VR headset.
+Axes: x runs along the back wall from the TV wall (x=0) to the window wall (x=150). z runs from the back wall (z=0)
+to the door wall (z=131). Entry nook: x -28..20, z 102..159 (48 wide, 57 deep: 28 past the door wall, 28 past the
+TV wall). Closet opening is on the door wall; the room door is on the nook's far wall (z=159), hinged at the x=-26 side.
+Measured by ben: back wall 150, window wall 131 (52 + 57 window + 22), sill 40, window top 81.5, ceiling 96,
+recessed lights 2x2 about 30" diagonally in from the corners, fan dead centre dropping 18", media console
+63.5 x 15 x 25.5 (on the floor), Yamaha keyboard 53 wide x 12 deep with music stand top at 40, monitors 28" diagonal,
+TV 65". Guessed from photos: closet opening width/position, door position on the far wall, chair size, art size.
+How it works: R = room measurements. T = catalog of item types (size, source, builder). defaults() = starting layout.
+items = what is in the room now (saved per browser in localStorage). fit() = the fit check.
+Catalog rule from ben: every item is either his real measurement or a real product found online with its listed size
+and link (see PRODUCTS). Photoreal stills: window.__room.exportGLB() gives the exact scene; a Blender (bpy, Cycles)
+script renders it. The script is published beside this page as handoff/render_still.py.txt.
+ben judges the product, not the code: test in a real browser (Playwright) before saying it works.
+Photoreal route that worked (2026-11-14): exportGLB -> Blender still -> image model on Wiro (Seedream 5.5 or GPT Image 2.6
+Flare/Sunburst, about 4-7 cents each) with a prompt that says keep camera, layout and every object's position and size.
+The image models keep the layout but invent small details, so the page stays the ruler. Image spend needs ben's OK.
+ROADMAP (in order): 1) ben's corrections to guessed items (closet width, door spot, chair and art sizes).
+2) Fill the catalog gaps with real listings: keyboard bench, monitor arm, desk lamp, roller shade, guitar hangers, planter.
+3) A "render this view" routine: ben names a view and light setting in chat, Claude runs the photoreal route and returns the image.
+4) VR on the Quest: host this same page outside the artifact viewer (it blocks headset mode), then test in the headset.
+5) Small items that sit on furniture and move with it. 6) Other rooms, once ben scans or measures them.
+Which model: small tweaks (add or resize a catalog item, change a measurement in R, move something in defaults(), wording)
+are fine for a cheaper model. Use the strongest model for new systems: VR hosting, room-shape changes, render pipeline.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout: 3D stage fills the screen; a measured-drawing side sheet (bottom sheet on phones) holds controls, fit check and assumptions. */
+:root{
+  --bg:#eceae6; --panel:#f7f6f3; --fg:#22252a; --muted:#666b73; --line:#d5d2cb;
+  --accent:#8a5a34; --accent-fg:#fff; --stage:#dfe3e6;
+  --ok:#2f7d4f; --warn:#b06a12; --chip:#e7e4de;
+  --display:"Space Grotesk",system-ui,sans-serif; --body:"Inter",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#17191c; --panel:#1f2226; --fg:#e8e6e1; --muted:#9aa0a8; --line:#33373d;
+  --accent:#c9925f; --accent-fg:#1a1410; --stage:#24282d; --ok:#6cc08c; --warn:#e0a24e; --chip:#2a2e33; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#17191c; --panel:#1f2226; --fg:#e8e6e1; --muted:#9aa0a8; --line:#33373d;
+  --accent:#c9925f; --accent-fg:#1a1410; --stage:#24282d; --ok:#6cc08c; --warn:#e0a24e; --chip:#2a2e33; color-scheme:dark }
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.45;overflow:hidden}
+.app{display:flex;height:100%;min-height:0}
+.stage{position:relative;flex:1;min-width:0;min-height:0;background:var(--stage)}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.hint{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:12px;font-size:12px;color:var(--muted);background:var(--panel);border:1px solid var(--line);padding:4px 8px;border-radius:6px;pointer-events:none}
+.viewname{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:12px;font-family:var(--display);font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+#vrslot{position:absolute;right:16px;bottom:12px}
+#vrslot button{position:static!important;font-family:var(--body)!important}
+.sheet{width:340px;flex:none;background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:12.5px;margin:2px 0 0}
+h2{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button,.btn{flex:1 1 auto;font:500 13px var(--body);color:var(--fg);background:var(--chip);border:1px solid var(--line);border-radius:7px;padding:7px 10px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg.small button{font-size:12px;padding:5px 8px;flex:0 1 auto}
+.views{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.fit li{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;font-size:13px}
+.pill{font:600 10.5px var(--body);letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:4px;border:1px solid currentColor;margin-top:1px;min-width:42px;text-align:center}
+.pill.ok{color:var(--ok)} .pill.warn{color:var(--warn)}
+.fit b,.card b{font-weight:600;font-variant-numeric:tabular-nums}
+.assume li{font-size:12.5px;color:var(--muted);padding-left:12px;border-left:2px solid var(--line)}
+.assume b{color:var(--fg);font-weight:600}
+.card{border:1px solid var(--accent);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.card h3{font:600 15px var(--display);margin:0}
+.card p{margin:0;font-size:12.5px;color:var(--muted)}
+.card a{color:var(--accent)}
+.row{display:flex;gap:6px}
+select{flex:1;min-width:0;font:500 13px var(--body);color:var(--fg);background:var(--chip);border:1px solid var(--line);border-radius:7px;padding:7px 8px}
+.empty{font-size:12.5px;color:var(--muted);margin:0}
+.stills{display:grid;gap:8px}
+.stills img{display:block;width:100%;border-radius:7px;border:1px solid var(--line);cursor:zoom-in}
+#big{position:absolute;inset:0;z-index:5;background:var(--stage);display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;cursor:zoom-out;padding:12px}
+#big img{max-width:100%;max-height:calc(100% - 30px);border-radius:6px}
+#big span{font-size:12px;color:var(--muted)}
+@media (max-width:760px){
+  .app{flex-direction:column}
+  .stage{flex:0 0 52%}
+  .sheet{width:auto;flex:1;min-height:0;border-left:0;border-top:1px solid var(--line)}
+  .hint{display:none}
+}
+</style>
+
+<div class="app">
+  <div class="stage" id="stage">
+    <div class="viewname" id="viewname">From the doorway</div>
+    <div class="hint">Drag to look around · tap an item to select it, then drag it to move</div>
+    <div id="vrslot"></div>
+    <div id="big" hidden><img id="bigImg" alt=""><span>Tap to close</span></div>
+  </div>
+  <aside class="sheet">
+    <div>
+      <h1>Office + music room</h1>
+      <p class="sub">Built to your tape measure, in inches. Tap any item to see its size and where the size comes from.</p>
+    </div>
+    <section id="selSec"><h2>Selected item</h2>
+      <p class="empty" id="selEmpty">Nothing selected. Tap an item in the room or in the list below.</p>
+      <div class="card" id="selCard" hidden>
+        <h3 id="selName"></h3>
+        <p id="selSize"></p>
+        <p id="selSrc"></p>
+        <div class="row"><button class="btn" id="selRot">Turn 90°</button><button class="btn" id="selDel">Remove</button></div>
+      </div></section>
+    <section><h2>Start from</h2>
+      <div class="seg" id="segDesk">
+        <button id="desk78" data-v="78">78″ desk layout</button>
+        <button id="desk72" data-v="72">72″ desk layout</button>
+      </div></section>
+    <section><h2>Look</h2>
+      <div class="seg" id="segLook">
+        <button id="lookWalnut" data-v="walnut" aria-pressed="true">Walnut + charcoal</button>
+        <button id="lookOak" data-v="oak" aria-pressed="false">Oak + oatmeal</button>
+        <button id="lookDark" data-v="dark" aria-pressed="false">Dark studio</button>
+      </div></section>
+    <section><h2>Lights</h2>
+      <div class="seg" style="margin-bottom:6px">
+        <button id="lightDay" data-preset="day">Day</button>
+        <button id="lightEve" data-preset="evening">Evening</button>
+      </div>
+      <div class="seg small" id="segLights">
+        <button id="lSun" data-l="sun">Daylight</button>
+        <button id="lCans" data-l="cans">Ceiling lights</button>
+        <button id="lFan" data-l="fan">Fan light</button>
+        <button id="lDesk" data-l="desk">Desk lamp</button>
+        <button id="lScreens" data-l="screens">Screens</button>
+        <button id="lFloor" data-l="floor">Floor lamp</button>
+        <button id="lShelf" data-l="shelf">Shelf glow</button>
+      </div></section>
+    <section><h2>Views</h2>
+      <div class="seg views" id="segView">
+        <button id="vDoor" data-v="door" aria-pressed="true">From the doorway</button>
+        <button id="vPlan" data-v="plan" aria-pressed="false">Floor plan</button>
+        <button id="vIso" data-v="iso" aria-pressed="false">Dollhouse</button>
+        <button id="vDesk" data-v="desk" aria-pressed="false">Workstation</button>
+        <button id="vMusic" data-v="music" aria-pressed="false">Music corner</button>
+        <button id="vTv" data-v="tv" aria-pressed="false">From the seat</button>
+      </div>
+      <div class="seg" style="margin-top:6px"><button id="togDims" aria-pressed="false">Show measurements</button></div></section>
+    <section><h2>Add an item</h2>
+      <div class="row"><select id="addSel" aria-label="Item to add"></select><button class="btn" id="addBtn" style="flex:none">Add</button></div></section>
+    <section><h2>In the room</h2><div class="seg small" id="inroom"></div></section>
+    <section><h2>Fit check</h2><ul class="fit" id="fit"></ul></section>
+    <section><h2>Guessed, not measured</h2>
+      <ul class="assume">
+        <li><b>Closet:</b> drawn as a 72″ opening on the door wall starting 6″ from the entry corner. Width and position are read from your photos.</li>
+        <li><b>Room door:</b> drawn 30″ wide at the TV-side end of the entry's far wall, swinging in against that wall.</li>
+        <li><b>Your chair, glass cabinet and ocean canvases:</b> sizes estimated from photos (the cabinet uses IKEA Detolf's listed size).</li>
+        <li><b>Keyboard:</b> width, depth and the 40″ music-stand height are yours; the keys are drawn at 31″.</li>
+        <li><b>Where things sit:</b> the starting layout is my proposal. Move anything and the fit check updates.</li>
+      </ul></section>
+  </aside>
+</div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+
+/* ---------- Room measurements (inches) ---------- */
+const R = {
+  W:150, D:131, H:96,
+  win:{from:52,w:57,sill:40,top:81.5},
+  nook:{x0:-28,x1:20,z0:102,z1:159},
+  door:{x0:-26,w:30,h:80},
+  closet:{x0:26,w:72,h:80,dep:24},
+  fanDrop:18, lightInset:21,
+};
+const I = 0.0254, PI = Math.PI;
+
+/* ---------- Real products (size and link from the listing). Filled from research. ---------- */
+const PRODUCTS = {
+  desk78:{w:78.7,d:27.5,h:29.5,product:'Lantine 78.7″ Extra Long Computer Desk',url:'https://www.target.com/p/-/A-1002583697',price:191,note:'Listing gives only a 150 lb rating in a Q&A; check it is stiff enough for clamp-on monitor arms, and that the walnut top is the option you get.'},
+  desk72:{w:70.9,d:29.5,h:30,product:'Uline Metro Office Desk 72 × 30″, Walnut',url:'https://uline.com/Product/Detail/H-9779/Office-Desks/Metro-Office-Desk-72-x-30-Walnut',price:590,note:'Actual width is 70⅞″. 250 lb capacity, laminate top.'},
+  loveseat:{w:58,d:35,h:37,product:'Rooms To Go Alanis Bay Gray Loveseat',url:'https://www.roomstogo.com/furniture/product/alanis-bay-gray-loveseat/10281830',note:'Listed as gray, not charcoal; no price shown.'},
+  bench:{w:48,d:18,h:18,product:'Rooms To Go Merimac Gray Accent Bench',url:'https://www.roomstogo.com/furniture/product/merimac-gray-accent-bench/33093030',price:260},
+  consoleSm:{w:54,d:14.6,h:22.7,product:'Qwatto 54″ Media Console, tambour doors',url:'https://www.target.com/p/-/A-1008334208',price:160,note:'Two cable ports and a built-in power hub; closed doors hide the router. Listing does not mention ventilation.'},
+  floorLamp:{w:16,d:16,h:62.5,product:'Threshold Londonberry Stick Floor Lamp, Black',url:'https://www.shipt.com/shop/products/878f7ec4-e31d-11ee-b5ac-6ffa44c8dffa?zip=91607',note:'16″ is the shade; the base is 11.25″ across.'},
+  rug:{w:96,d:60,h:.3,product:'Nuloom Zephira Solid Area Rug 5 × 8, Grey',url:'https://www.target.com/p/nuloom-zephira-modern-solid-area-rug-5-x-8-grey/-/A-1010133969',price:172},
+  shelf:{w:36,d:6,h:2.25,product:'Threshold 36″ Floating Wood Shelf, Walnut',url:'https://www.target.com/p/36-34-floating-wood-shelf-walnut-threshold-8482/-/A-86690634',price:45,note:'33 lb capacity. The glow strip is an add-on, not part of this shelf.'},
+  plantTall:{w:28,d:18,h:72,product:'Nearly Natural 6 ft Artificial Fiddle Leaf Fig',url:'https://www.target.com/p/nearly-natural-6-ft-artificial-fiddle-leaf-tree/-/A-93669830',price:88,note:'Size is the widest leaf spread. Comes in a plain nursery pot; a planter is separate.'},
+  panel:{w:24,d:2,h:48,product:'ATS Acoustic Panel 24 × 48 × 2, Charcoal',url:'https://www.atsacoustics.com/item--ATS-Acoustic-Panel-24-x-48-x-2--1270.html',price:96,note:'Price is per panel.'},
+  slat:{w:23.6,d:.83,h:94.5,product:'Andor Willow Walnut Panel, 8 ft',url:'https://andorwillow.com/products/walnut-willow-panel',price:249},
+  kbench:{note:'No listing with a trustworthy size yet (the On-Stage KT7800 page gives two conflicting sizes), so a typical X-bench size is drawn.'},
+};
+const prod = (key, fallback) => ({...fallback, ...(PRODUCTS[key]||{})});
+
+/* ---------- State ---------- */
+const S = { look:'walnut', lights:{sun:1,cans:0,fan:0,desk:0,screens:1,floor:0,shelf:0}, dims:false, view:'door', sel:null };
+let items = [];
+const KEY = 'office-room-v4';
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({items,look:S.look,lights:S.lights})); }catch(e){} }
+function load(){ try{ const d=JSON.parse(localStorage.getItem(KEY)||'null'); if(d&&Array.isArray(d.items)&&d.items.every(i=>T[i.t])){ items=d.items; S.look=d.look||S.look; Object.assign(S.lights,d.lights||{}); return true; } }catch(e){} return false; }
+
+/* ---------- Renderer / scene ---------- */
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.xr.enabled = true;
+stage.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const rig = new THREE.Group(); scene.add(rig);
+const camera = new THREE.PerspectiveCamera(60,1,0.05,100); rig.add(camera);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = .12; controls.maxPolarAngle = PI*0.52;
+const world = new THREE.Group(); world.scale.setScalar(I); scene.add(world);
+const shell = new THREE.Group(), furn = new THREE.Group(), dims = new THREE.Group(), lights = new THREE.Group();
+world.add(shell, furn, dims, lights);
+let selBox = null;
+
+function stageColor(){ const c = getComputedStyle(document.documentElement).getPropertyValue('--stage').trim(); scene.background = new THREE.Color(c||'#dfe3e6'); }
+stageColor();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', stageColor);
+new MutationObserver(stageColor).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* ---------- Materials ---------- */
+const M = (color, o={}) => new THREE.MeshStandardMaterial({color, roughness:.8, metalness:0, ...o});
+const mat = {
+  wall:M(0xd8d1c4,{roughness:.95}), ceil:M(0xf1eeea,{roughness:1}), white:M(0xf1efea,{roughness:.6}),
+  wood:M(0x5b3b24,{roughness:.55}), woodDark:M(0x4a2f1c,{roughness:.55}), black:M(0x1c1c1f,{roughness:.5}),
+  fabric:M(0x4a4e55,{roughness:1}), cushion:M(0x565a62,{roughness:1}), rug:M(0x8e8a84,{roughness:1}),
+  chair:M(0x8d9298,{roughness:.9}), chairFrame:M(0xcfd8d3,{roughness:.5}),
+  metal:M(0x2a2b2e,{roughness:.35,metalness:.6}), plinth:M(0x2b2d31),
+  screenOn:M(0x10141c,{roughness:.2,emissive:0x1c2c4a,emissiveIntensity:.8}), screenOff:M(0x0c0d10,{roughness:.15}),
+  glass:new THREE.MeshBasicMaterial({color:0xcfe3f1}), blind:M(0x3a3c41,{roughness:1,transparent:true,opacity:.88}),
+  lampOn:M(0xfff1d6,{emissive:0xffd9a0,emissiveIntensity:1.8}), lampOff:M(0xe9e2d2,{roughness:.9}),
+  can:M(0xffffff,{emissive:0xfff0d8,emissiveIntensity:.2}), fanLamp:M(0xffffff,{emissive:0xfff0d8,emissiveIntensity:.2}),
+  acoustic:M(0x34373c,{roughness:1}), spruce:M(0xc99a5b,{roughness:.45}), cherry:M(0x7a1f1c,{roughness:.3}),
+  leaf:M(0x4d7a4a,{roughness:.9,flatShading:true}), leafDark:M(0x355c38,{roughness:.9,flatShading:true}), pot:M(0xd9d4cb,{roughness:.7}), soil:M(0x3a2c22),
+  clearGlass:M(0xe8f2f4,{roughness:.05,transparent:true,opacity:.22}), book1:M(0x6d7f8c), book2:M(0xb9a27a), book3:M(0x7a4b3a), dish:M(0x7d9a52,{roughness:.4}),
+  hall:M(0xb9b2a6,{roughness:.9}),
+};
+for(const k in mat) mat[k].name = k;
+const LOOKS = {
+  walnut:{wood:0x5b3b24,woodDark:0x4a2f1c,fabric:0x4a4e55,cushion:0x565a62,rug:0x6f6d6b,wall:0xd8d1c4,acoustic:0x34373c},
+  oak:{wood:0xb08552,woodDark:0x9a7446,fabric:0xb3a895,cushion:0xc2b8a6,rug:0xcfc6b6,wall:0xe7e2d9,acoustic:0x6e6a62},
+  dark:{wood:0x3b2617,woodDark:0x2e1d12,fabric:0x2f3237,cushion:0x3a3d43,rug:0x45474c,wall:0x868a8a,acoustic:0x232528},
+};
+function applyLook(){ const L=LOOKS[S.look]; for(const k in L) mat[k].color.setHex(L[k]); }
+
+function floorTex(){
+  const c=document.createElement('canvas'); c.width=c.height=512; const g=c.getContext('2d');
+  const tones=['#9c9084','#a3978b','#93877b','#a89c90','#998d82'], pw=32, pl=256;
+  for(let r=0;r<16;r++){ const off=(r%3)*85; for(let k=-1;k<3;k++){ g.fillStyle=tones[(r*3+k+7)%5]; g.fillRect(k*pl+off,r*pw,pl-1,pw-1);
+    g.fillStyle='rgba(60,50,42,.10)'; for(let s=0;s<5;s++) g.fillRect(k*pl+off+((s*53+r*17)%pl), r*pw+((s*7+r*3)%pw), 60,1); } }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; t.repeat.set(1/96,1/96); return t;
+}
+function keysTex(){
+  const c=document.createElement('canvas'); c.width=1040; c.height=110; const g=c.getContext('2d');
+  g.fillStyle='#f4f2ec'; g.fillRect(0,0,1040,110); g.strokeStyle='#8c8a84'; g.lineWidth=1.5;
+  for(let i=0;i<=52;i++){ g.beginPath(); g.moveTo(i*20,0); g.lineTo(i*20,110); g.stroke(); }
+  g.fillStyle='#17171a'; const pat=[1,0,1,1,0,1,1]; for(let i=0;i<51;i++){ if(pat[i%7]) g.fillRect(i*20+13,0,14,68); }
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t;
+}
+function artTex(seed){
+  const c=document.createElement('canvas'); c.width=384; c.height=256; const g=c.getContext('2d');
+  const sky=g.createLinearGradient(0,0,0,150); sky.addColorStop(0,seed?'#6f8fb0':'#5d7fa6'); sky.addColorStop(.6,seed?'#f0c79a':'#e9b98c'); sky.addColorStop(1,'#f6e2c0'); g.fillStyle=sky; g.fillRect(0,0,384,150);
+  const sea=g.createLinearGradient(0,150,0,256); sea.addColorStop(0,'#7fa0ad'); sea.addColorStop(1,seed?'#c9b79a':'#3f6272'); g.fillStyle=sea; g.fillRect(0,150,384,106);
+  g.fillStyle='rgba(255,240,210,.5)'; for(let i=0;i<14;i++) g.fillRect(120+((i*37)%140),156+i*7,60-(i*3),2);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t;
+}
+mat.floor = new THREE.MeshStandardMaterial({map:floorTex(),roughness:.65}); mat.floor.name='floor';
+mat.keys = new THREE.MeshStandardMaterial({map:keysTex(),roughness:.4}); mat.keys.name='keys';
+mat.art0 = new THREE.MeshStandardMaterial({map:artTex(0),roughness:.9}); mat.art0.name='art0';
+mat.art1 = new THREE.MeshStandardMaterial({map:artTex(1),roughness:.9}); mat.art1.name='art1';
+
+/* ---------- Geometry helpers (inches; x,y,z = minimum corner) ---------- */
+function bx(p,x,y,z,w,h,d,m,shadow=true){ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); o.position.set(x+w/2,y+h/2,z+d/2); o.castShadow=shadow; o.receiveShadow=true; p.add(o); return o; }
+function rb(p,x,y,z,w,h,d,m,r=.35,shadow=true){ const mn=Math.min(w,h,d); if(mn<.9||r<=0) return bx(p,x,y,z,w,h,d,m,shadow);
+  const o=new THREE.Mesh(new RoundedBoxGeometry(w,h,d,2,Math.min(r,mn/2-.05)),m); o.position.set(x+w/2,y+h/2,z+d/2); o.castShadow=shadow; o.receiveShadow=true; p.add(o); return o; }
+function cyl(p,x,y,z,r,h,m,seg=24,r2){ const o=new THREE.Mesh(new THREE.CylinderGeometry(r2??r,r,h,seg),m); o.position.set(x,y+h/2,z); o.castShadow=true; o.receiveShadow=true; p.add(o); return o; }
+function ball(p,x,y,z,r,m,sy=1){ const o=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),m); o.position.set(x,y,z); o.scale.y=sy; o.castShadow=true; p.add(o); return o; }
+// wall plane from (x1,z1) to (x2,z2); the visible side is to the left of travel, so walls vanish when seen from outside
+function wall(x1,z1,x2,z2,y0=0,y1=R.H,m=mat.wall){ const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz);
+  const o=new THREE.Mesh(new THREE.PlaneGeometry(len,y1-y0),m); o.position.set((x1+x2)/2,(y0+y1)/2,(z1+z2)/2); o.rotation.y=-Math.atan2(dz,dx); o.receiveShadow=true; shell.add(o); return o; }
+function along(x1,z1,x2,z2,off,thick,y,h,m,extra=0){ const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),nx=-dz/len,nz=dx/len;
+  const o=new THREE.Mesh(new THREE.BoxGeometry(len+extra,h,thick),m); o.position.set((x1+x2)/2+nx*off,y+h/2,(z1+z2)/2+nz*off); o.rotation.y=-Math.atan2(dz,dx); shell.add(o); return o; }
+function slab(pts,y,m,up){ const s=new THREE.Shape(pts.map(([x,z])=>new THREE.Vector2(x,up?-z:z))); const o=new THREE.Mesh(new THREE.ShapeGeometry(s),m); o.rotation.x=up?-PI/2:PI/2; o.position.y=y; o.receiveShadow=up; shell.add(o); return o; }
+
+/* ---------- Room shell ---------- */
+function buildShell(){
+  const {W,D,H,win,nook:n,door:dr,closet:c}=R, wEnd=win.from+win.w, dx1=dr.x0+dr.w, cx1=c.x0+c.w;
+  const outline=[[0,0],[W,0],[W,D],[n.x1,D],[n.x1,n.z1],[n.x0,n.z1],[n.x0,n.z0],[0,n.z0]];
+  slab(outline,0,mat.floor,true); slab(outline,H,mat.ceil,false);
+  // wall runs: [x1,z1,x2,z2, hasBaseboard]
+  const runs=[[0,0,W,0],[W,0,W,win.from],[W,wEnd,W,D],[W,D,cx1,D],[c.x0,D,n.x1,D],[n.x1,D,n.x1,n.z1],[n.x1,n.z1,dx1,n.z1],[dr.x0,n.z1,n.x0,n.z1],[n.x0,n.z1,n.x0,n.z0],[n.x0,n.z0,0,n.z0],[0,n.z0,0,0]];
+  for(const r of runs){ wall(...r); along(...r,.3,.6,0,4,mat.white); }
+  wall(W,win.from,W,wEnd,0,win.sill); wall(W,win.from,W,wEnd,win.top,H); along(W,win.from,W,wEnd,.3,.6,0,4,mat.white);
+  wall(cx1,D,c.x0,D,c.h,H); wall(dx1,n.z1,dr.x0,n.z1,dr.h,H);
+  // wall thickness for the plan view (sits just below floor level, outside the room)
+  const segs=[[0,0,W,0],[W,0,W,D],[W,D,n.x1,D],[n.x1,D,n.x1,n.z1],[n.x1,n.z1,n.x0,n.z1],[n.x0,n.z1,n.x0,n.z0],[n.x0,n.z0,0,n.z0],[0,n.z0,0,0]];
+  for(const s of segs) along(...s,-2.25,4.5,-1,.9,mat.plinth,4.5);
+  // closet (open, behind the door wall)
+  const cz=D+c.dep; wall(cx1,D,cx1,cz,0,H); wall(cx1,cz,c.x0,cz,0,H); wall(c.x0,cz,c.x0,D,0,H);
+  slab([[c.x0,D],[cx1,D],[cx1,cz],[c.x0,cz]],0.02,mat.floor,true); slab([[c.x0,D],[cx1,D],[cx1,cz],[c.x0,cz]],H,mat.ceil,false);
+  bx(shell,c.x0,66,D+8,c.w,1,c.dep-8,mat.white,false); cyl(shell,c.x0+c.w/2,62,D+13,.6,c.w,mat.metal).rotation.z=PI/2;
+  bx(shell,c.x0-2.5,0,D-.5,2.5,c.h+2.5,1,mat.white,false); bx(shell,cx1,0,D-.5,2.5,c.h+2.5,1,mat.white,false); bx(shell,c.x0-2.5,c.h,D-.5,c.w+5,2.5,1,mat.white,false);
+  // room door: frame, leaf swung open against the entry's side wall, a strip of hallway beyond
+  bx(shell,dr.x0-2,0,n.z1-.6,2,dr.h+2,1,mat.white,false); bx(shell,dx1,0,n.z1-.6,2,dr.h+2,1,mat.white,false); bx(shell,dr.x0-2,dr.h,n.z1-.6,dr.w+4,2,1,mat.white,false);
+  bx(shell,dr.x0-1.6,.5,n.z1-dr.w,1.4,dr.h-1,dr.w-.5,mat.white); cyl(shell,dr.x0+.2,36,n.z1-dr.w+3,1,1.4,mat.metal).rotation.z=PI/2;
+  slab([[dr.x0,n.z1],[dx1,n.z1],[dx1,n.z1+44],[dr.x0,n.z1+44]],0,mat.hall,true);
+  // window: glass, frame, sash divider, sill
+  const g=new THREE.Mesh(new THREE.PlaneGeometry(win.w,win.top-win.sill),mat.glass); g.rotation.y=-PI/2; g.position.set(W+1.5,(win.sill+win.top)/2,win.from+win.w/2); g.name='windowGlass'; shell.add(g);
+  bx(shell,W-.5,win.sill,win.from,2.5,1.5,win.w,mat.black,false); bx(shell,W-.5,win.top-1.5,win.from,2.5,1.5,win.w,mat.black,false);
+  bx(shell,W-.5,win.sill,win.from,2.5,win.top-win.sill,1.5,mat.black,false); bx(shell,W-.5,win.sill,wEnd-1.5,2.5,win.top-win.sill,1.5,mat.black,false);
+  bx(shell,W+.3,win.sill,win.from+win.w/2-1,1.5,win.top-win.sill,2,mat.black,false);
+  bx(shell,W-4,win.sill-1,win.from-1,4,1,win.w+2,mat.white,false);
+  // motorized roller blind, partly lowered
+  rb(shell,W-4,win.top,win.from-2,3.2,3,win.w+4,mat.black,.8); const drop=19;
+  bx(shell,W-2.4,win.top-drop,win.from-1,.25,drop,win.w+2,mat.blind,false); bx(shell,W-2.7,win.top-drop-.8,win.from-1,.8,.8,win.w+2,mat.black,false);
+  // ceiling fan, centre of the main rectangle
+  const fx=W/2, fz=D/2, fb=H-R.fanDrop;
+  cyl(shell,fx,fb+6,fz,.7,R.fanDrop-6,mat.black); cyl(shell,fx,fb+1.5,fz,5.2,5,mat.black); cyl(shell,fx,fb,fz,3.6,1.5,mat.fanLamp);
+  for(let i=0;i<5;i++){ const b=new THREE.Group(); b.position.set(fx,fb+4,fz); b.rotation.y=i*PI*2/5; bx(b,4.5,0,-2.6,21,.35,5.2,mat.black); shell.add(b); }
+  // recessed lights (2 x 2)
+  for(const [x,z] of cans()){ const o=new THREE.Mesh(new THREE.CircleGeometry(3,24),mat.can); o.rotation.x=PI/2; o.position.set(x,H-.15,z); shell.add(o); }
+}
+const cans=()=>{ const i=R.lightInset; return [[i,i],[R.W-i,i],[i,R.D-i],[R.W-i,R.D-i]]; };
+
+/* ---------- Catalog: every item type, its real size, where the size comes from, and how to draw it ---------- */
+const SRC = { you:'Measured by you', photo:'Estimated from your photos', typical:'Typical size, no product picked yet' };
+function plant(g,x,y,z,s){ cyl(g,x,y,z,2.2*s,3.6*s,mat.pot,20,2.7*s); cyl(g,x,y+3.4*s,z,2.5*s,.3,mat.soil,20);
+  ball(g,x,y+6.2*s,z,3.1*s,mat.leaf,.9); ball(g,x+1.6*s,y+7.6*s,z+.8*s,2.2*s,mat.leafDark); ball(g,x-1.5*s,y+7.2*s,z-1*s,2*s,mat.leaf); }
+function xLegs(g,w,h,dep,z0){ const span=w*.64, len=Math.hypot(span,h), a=Math.atan2(h,span);
+  for(const s of [-1,1]){ const bar=bx(g,-len/2,h/2-.6,z0+dep/2-.6+s*1.4,len,1.2,1.2,mat.metal); bar.rotation.z=s*a; }
+  for(const sx of [-span/2,span/2]){ bx(g,sx-.7,0,z0-2,1.4,1.4,dep+4,mat.metal); bx(g,sx-.7,h-1.4,z0,1.4,1.4,dep,mat.metal); } }
+function guitar(q,kind){
+  const disc=(r,cy,m,dep)=>{ const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,dep,32),m); o.rotation.x=PI/2; o.position.set(0,cy,1+dep/2); o.castShadow=true; q.add(o); };
+  if(kind==='acoustic'){ disc(7.6,7.6,mat.spruce,4); disc(5.7,16,mat.spruce,4); const hole=new THREE.Mesh(new THREE.CircleGeometry(1.9,24),mat.black); hole.position.set(0,13,5.05); q.add(hole); bx(q,-3,5,5,6,1,.4,mat.woodDark,false); }
+  else { disc(6.6,7,mat.cherry,1.8); disc(5.2,14.5,mat.cherry,1.8); bx(q,-1.6,4,2.8,3.2,.9,.5,mat.metal,false); bx(q,-1.4,9,2.8,2.8,1,.4,mat.black,false); bx(q,-1.4,13,2.8,2.8,1,.4,mat.black,false); }
+  const nz=kind==='acoustic'?4.2:2.2; bx(q,-1.05,19,nz,2.1,16,.8,mat.woodDark); bx(q,-1.6,35,nz-.3,3.2,5,.7,kind==='acoustic'?mat.woodDark:mat.black); bx(q,-1.5,32.5,0,3,1,nz+1.5,mat.black);
+}
+function desk(g,t){
+  const w=t.w,d=t.d,top=t.h,X=-w/2,Z=-d/2;
+  rb(g,X,top-1.5,Z,w,1.5,d,mat.wood,.3);
+  for(const lx of [X+5,X+w-8]){ bx(g,lx,1,Z+12,3,top-2.5,3.5,mat.black); rb(g,lx-.5,0,Z+2,4,1,26,mat.black,.3); }
+  bx(g,X+8,top-2.6,Z+13,w-16,1.1,2,mat.black);
+  bx(g,X+10,top-5.5,Z+1.5,w-20,.4,5.5,mat.metal); bx(g,X+10,top-5.5,Z+6.6,w-20,2.5,.4,mat.metal);   // cable tray
+  bx(g,X+16,top-5,Z+2.4,15,1.6,2.4,mat.white); bx(g,X+7.2,1,Z+13.2,.6,top-6,.6,mat.black,false);     // power strip, cable bundle down the leg
+  const k=28/Math.hypot(16,9), mw=16*k, mh=9*k, scr=S.lights.screens?mat.screenOn:mat.screenOff;
+  // ben's real setup: left monitor turned vertical, right monitor horizontal
+  for(const [cx,pw,ph,ry,lift] of [[4-mw/2-mh/2-.8,mh,mw,.28,3],[4,mw,mh,-.06,6]]){ const mg=new THREE.Group(); mg.position.set(cx,0,Z); mg.rotation.y=ry; g.add(mg);
+    cyl(g,cx,top,Z+2.2,.75,13,mat.metal); bx(g,cx-1.5,top,Z+.6,3,.6,3.2,mat.metal);
+    rb(mg,-pw/2,top+lift,7,pw,ph,1,mat.black,.3); const sc=new THREE.Mesh(new THREE.PlaneGeometry(pw-1,ph-1),scr); sc.position.set(0,top+lift+ph/2,8.05); mg.add(sc);
+    bx(mg,-1,top+11,2.5,2,1.2,5,mat.metal,false); }
+  rb(g,-9,top,Z+17,17.5,.7,5.5,mat.black,.25); rb(g,12,top,Z+17.5,2.5,1.2,4.2,mat.black,.5); bx(g,-17,top,Z+16,34,.12,14,mat.acoustic,false);
+  for(const sx of [X+3,X+w-9]) rb(g,sx,top,Z+2,5.5,9,6.5,mat.black,.5);
+  const lx=X+w-16, lz=Z+6, on=S.lights.desk; cyl(g,lx,top,lz,3,.6,mat.black); const arm=cyl(g,lx-2.5,top+.5,lz+1.5,.35,16,mat.black); arm.rotation.z=.3; arm.rotation.x=.18;
+  rb(g,lx-9,top+15,lz+1,7,1.2,3.2,mat.black,.4); bx(g,lx-8.5,top+14.8,lz+1.4,6,.25,2.4,on?mat.lampOn:mat.lampOff,false);
+  if(on){ const s=new THREE.SpotLight(0xffe2b8,7,0,.9,.6,2); s.position.set(lx-5.5,top+14.5,lz+3); s.target.position.set(lx-9.5,top,lz+9); s.castShadow=true; s.shadow.mapSize.set(1024,1024); s.shadow.bias=-.0005; g.add(s,s.target); }
+  if(S.lights.screens){ const b=new THREE.PointLight(0xdfe8ff,.8,2.4,2); b.position.set(0,top+13,Z+3.5); g.add(b); }
+  const hx=X+12; cyl(g,hx,top,Z+21,2.2,.5,mat.black); cyl(g,hx,top+.5,Z+21,.4,10,mat.black); bx(g,hx-2,top+10.2,Z+20,4,.8,2,mat.black);
+  plant(g,X+22,top,Z+6,.8);
+}
+function consoleUnit(g,t){ const w=t.w,d=t.d,h=t.h,X=-w/2,Z=-d/2;
+  rb(g,X,3,Z,w,h-3,d,mat.wood,.3); const n=w>55?4:3, dw=(w-2)/n; for(let i=0;i<n;i++){ rb(g,X+1+i*dw+.2,4,Z+d-.2,dw-.4,h-5,.5,mat.woodDark,.15,false); bx(g,X+1+i*dw+dw-2,h/2+1,Z+d+.3,.5,4,.4,mat.black,false); }
+  for(const lx of [X+2,X+w-4]) for(const lz of [Z+1.5,Z+d-3.5]) bx(g,lx,0,lz,2,3,2,mat.black);
+  rb(g,-18,h,Z+5,36,2.4,3.6,mat.black,.6); cyl(g,X+7,h,Z+d/2,2.4,1,mat.dish,20,3.2); plant(g,X+w-7,h,Z+d/2,.75); }
+const T = {
+  desk78:{name:'Desk, 78″',cat:'Desks',kind:'floor',label:1,...prod('desk78',{w:78,d:30,h:29,src:SRC.typical}),build:desk},
+  desk72:{name:'Desk, 72″',cat:'Desks',kind:'floor',label:1,...prod('desk72',{w:72,d:30,h:29,src:SRC.typical}),build:desk},
+  chair:{name:'Your office chair',cat:'Yours',kind:'floor',tuck:1,w:26,d:26,h:50,src:SRC.photo,build(g){
+    for(let i=0;i<5;i++){ const s=new THREE.Group(); s.rotation.y=i*PI*2/5; bx(s,0,1.6,-1,12.5,1.3,2,mat.chairFrame); cyl(s,12,0,0,1.2,1.6,mat.black); g.add(s); }
+    cyl(g,0,2.5,0,1.1,13,mat.metal); rb(g,-10,16,-9.5,20,3,19,mat.chair,1.2);
+    rb(g,-9.5,20,-11,19,25,2,mat.chair,.9).rotation.x=-.12; rb(g,-6,45.5,-13.3,12,6.5,1.8,mat.chair,.8).rotation.x=-.12;
+    for(const s of [-1,1]){ bx(g,s*11.2-.9,18,-1,1.8,7.5,1.8,mat.chairFrame); rb(g,s*11.2-1.8,25.5,-4,3.6,1,10,mat.chairFrame,.4); } }},
+  keyboard:{name:'Yamaha keyboard on stand',cat:'Yours',kind:'floor',label:1,w:53,d:12,h:40,src:SRC.you+' (53″ wide, 12″ deep, music stand top at 40″)',build(g){
+    const top=31; rb(g,-26.5,top-4.2,-6,53,4.2,12,mat.black,.5);
+    const keys=new THREE.Mesh(new THREE.PlaneGeometry(48.5,5.6),mat.keys); keys.rotation.x=-PI/2; keys.position.set(0,top+.03,2.8); g.add(keys);
+    bx(g,-12,top,-5.4,24,9,.4,mat.black,false); xLegs(g,53,top-4.2,12,-6); bx(g,16,0,-5,.5,top-4.2,.5,mat.black,false); }},
+  kbench:{name:'Keyboard bench, X-style',cat:'Music',kind:'floor',tuck:1,...prod('kbench',{w:24,d:12,h:19.5,src:SRC.typical}),build(g,t){ rb(g,-t.w/2,t.h-2.8,-t.d/2,t.w,2.8,t.d,mat.black,.9); xLegs(g,t.w*.9,t.h-2.8,t.d-2,-t.d/2+1); }},
+  console:{name:'Your media console',cat:'Yours',kind:'floor',label:1,w:63.5,d:15,h:25.5,src:SRC.you+' (63.5″ × 15″ × 25.5″)',build:consoleUnit},
+  consoleSm:{name:'Smaller media console',cat:'TV area',kind:'floor',label:1,...prod('consoleSm',{w:47,d:16,h:24,src:SRC.typical}),build:consoleUnit},
+  loveseat:{name:'Loveseat',cat:'Seating',kind:'floor',label:1,...prod('loveseat',{w:58,d:34,h:32,src:SRC.typical}),build(g,t){ const w=t.w,d=t.d,h=t.h,X=-w/2,Z=-d/2;
+    rb(g,X,3,Z,w,13,d,mat.fabric,1.5); rb(g,X,3,Z,w,h-3,9,mat.fabric,1.8); rb(g,X,3,Z,6,21,d,mat.fabric,1.6); rb(g,X+w-6,3,Z,6,21,d,mat.fabric,1.6);
+    for(const k of [0,1]){ rb(g,X+6.5+k*(w-13)/2,16,Z+9,(w-13)/2-.5,4.5,d-10,mat.cushion,1.6); rb(g,X+7+k*(w-14)/2,20,Z+8,(w-14)/2-1,11,4.5,mat.cushion,1.8).rotation.x=-.1; }
+    for(const lx of [X+1.5,X+w-3]) for(const lz of [Z+1.5,Z+d-3]) bx(g,lx,0,lz,1.5,3,1.5,mat.black); }},
+  bench:{name:'Upholstered bench',cat:'Seating',kind:'floor',label:1,...prod('bench',{w:48,d:18,h:18,src:SRC.typical}),build(g,t){ const w=t.w,d=t.d,h=t.h,X=-w/2,Z=-d/2;
+    rb(g,X,h-4.5,Z,w,4.5,d,mat.fabric,1.4); bx(g,X+.5,h-6,Z+.5,w-1,1.5,d-1,mat.wood); for(const lx of [X+1,X+w-2.5]) for(const lz of [Z+1,Z+d-2.5]) bx(g,lx,0,lz,1.5,h-6,1.5,mat.wood); }},
+  floorLamp:{name:'Floor lamp',cat:'Lighting',kind:'floor',...prod('floorLamp',{w:11,d:11,h:60,src:SRC.typical}),build(g,t){ const on=S.lights.floor,h=t.h;
+    cyl(g,0,0,0,5,.8,mat.black); cyl(g,0,.8,0,.4,h-9,mat.black); cyl(g,0,h-10,0,5.5,10,on?mat.lampOn:mat.lampOff,24,4.6);
+    if(on){ const p=new THREE.PointLight(0xffc98a,2.2,0,2); p.position.set(0,h-4,0); g.add(p); } }},
+  plantTall:{name:'Tall plant',cat:'Decor',kind:'floor',...prod('plantTall',{w:24,d:24,h:66,src:SRC.typical}),build(g,t){ const h=t.h;
+    cyl(g,0,0,0,5,13,mat.pot,24,6.5); cyl(g,0,12.6,0,6,.4,mat.soil); cyl(g,0,13,0,.7,h-34,mat.woodDark,8).rotation.z=.04;
+    const r=t.w/2; ball(g,0,h-14,0,r*.95,mat.leaf,1.15); ball(g,r*.45,h-24,r*.3,r*.6,mat.leafDark); ball(g,-r*.4,h-20,-r*.35,r*.62,mat.leaf); ball(g,r*.1,h-6,-r*.2,r*.5,mat.leafDark); }},
+  rug:{name:'Area rug',cat:'Decor',kind:'floor',flat:1,...prod('rug',{w:96,d:60,h:.4,src:SRC.typical}),build(g,t){ const o=rb(g,-t.w/2,0,-t.d/2,t.w,.4,t.d,mat.rug,0,false); o.receiveShadow=true; bx(g,-t.w/2+3,.41,-t.d/2+3,t.w-6,.02,t.d-6,mat.cushion,false).material=mat.rug; }},
+  cabinet:{name:'Your glass cabinet',cat:'Yours',kind:'floor',w:16.75,d:14.4,h:64.1,src:SRC.photo+' (looks like IKEA Detolf; its listed size is used)',build(g,t){ const w=t.w,d=t.d,h=t.h,X=-w/2,Z=-d/2;
+    bx(g,X,0,Z,w,1.5,d,mat.white); bx(g,X,h-1.5,Z,w,1.5,d,mat.white); bx(g,X+.1,1.5,Z+.1,w-.2,h-3,d-.2,mat.clearGlass,false); for(const y of [17,33,49]) bx(g,X+.4,y,Z+.4,w-.8,.25,d-.8,mat.clearGlass,false); }},
+  tv:{name:'Your 65″ TV, wall-mounted',cat:'Yours',kind:'wall',w:56.7,d:1.5,h:31.9,src:SRC.you+' (65″ diagonal)',y0:34.5,build(g,t){ rb(g,-t.w/2,0,.6,t.w,t.h,1.4,mat.black,.3);
+    const sc=new THREE.Mesh(new THREE.PlaneGeometry(t.w-1,t.h-1),S.lights.screens?mat.screenOn:mat.screenOff); sc.position.set(0,t.h/2,2.05); g.add(sc); bx(g,-1.5,-9,.1,3,9,.5,mat.wall,false); }},
+  guitarA:{name:'Your acoustic guitar',cat:'Yours',kind:'wall',w:15.5,d:5,h:40,src:SRC.typical,y0:44,build(g){ guitar(g,'acoustic'); }},
+  guitarE:{name:'Your electric guitar',cat:'Yours',kind:'wall',w:13.5,d:3,h:40,src:SRC.typical,y0:50,build(g){ guitar(g,'electric'); }},
+  panel:{name:'Acoustic panel',cat:'Acoustic',kind:'wall',...prod('panel',{w:24,d:2,h:48,src:SRC.typical}),y0:44,build(g,t){ rb(g,-t.w/2,0,.2,t.w,t.h,t.d,mat.acoustic,.4); }},
+  slat:{name:'Wood slat panel',cat:'Acoustic',kind:'wall',...prod('slat',{w:23.6,d:.9,h:94.5,src:SRC.typical}),y0:0,build(g,t){ bx(g,-t.w/2,0,.1,t.w,t.h,.35,mat.black,false); const n=Math.round(t.w/1.6); for(let i=0;i<n;i++) bx(g,-t.w/2+.3+i*(t.w/n),0,.45,1.05,t.h,.5,mat.wood,false); }},
+  shelf:{name:'Floating shelf with glow',cat:'Decor',kind:'wall',...prod('shelf',{w:36,d:8,h:1.5,src:SRC.typical}),y0:58,build(g,t){ const on=S.lights.shelf,w=t.w;
+    rb(g,-w/2,0,0,w,t.h,t.d,mat.wood,.25); bx(g,-w/2+1,-.3,1,w-2,.3,.6,on?mat.lampOn:mat.lampOff,false);
+    if(on){ const p=new THREE.PointLight(0xffcf96,1.1,2.2,2); p.position.set(0,-3,3.5); g.add(p); }
+    bx(g,-w/2+3,t.h,1.5,1.6,8.5,5.5,mat.book1); bx(g,-w/2+4.8,t.h,1.5,1.3,7.5,5.5,mat.book2); bx(g,-w/2+6.3,t.h,1.5,1.8,9,5.5,mat.book3); plant(g,w/2-6,t.h,t.d/2,.7); }},
+  art0:{name:'Your ocean canvas (sunset)',cat:'Yours',kind:'wall',w:24,d:1.2,h:16,src:SRC.photo,y0:52,build(g,t){ bx(g,-12,0,.1,24,16,1.2,mat.white); const p=new THREE.Mesh(new THREE.PlaneGeometry(24,16),mat.art0); p.position.set(0,8,1.32); g.add(p); }},
+  art1:{name:'Your ocean canvas (shore)',cat:'Yours',kind:'wall',w:24,d:1.2,h:16,src:SRC.photo,y0:52,build(g,t){ bx(g,-12,0,.1,24,16,1.2,mat.white); const p=new THREE.Mesh(new THREE.PlaneGeometry(24,16),mat.art1); p.position.set(0,8,1.32); g.add(p); }},
+};
+const WALLS = {
+  back:{name:'back wall',rot:0,pos:u=>[u,0],min:0,max:R.W,plane:new THREE.Plane(new THREE.Vector3(0,0,1),0),u:p=>p.x},
+  window:{name:'window wall',rot:-PI/2,pos:u=>[R.W,u],min:0,max:R.D,plane:new THREE.Plane(new THREE.Vector3(-1,0,0),R.W*I),u:p=>p.z},
+  door:{name:'door wall',rot:PI,pos:u=>[u,R.D],min:R.nook.x1,max:R.W,plane:new THREE.Plane(new THREE.Vector3(0,0,-1),R.D*I),u:p=>p.x},
+  tv:{name:'TV wall',rot:PI/2,pos:u=>[0,u],min:0,max:R.nook.z0,plane:new THREE.Plane(new THREE.Vector3(1,0,0),0),u:p=>p.z},
+};
+const WALL_ORDER=['back','window','door','tv'];
+
+/* ---------- Starting layout (the proposal) ---------- */
+let nextId=1;
+function defaults(deskW){
+  const dk='desk'+deskW, spare=R.W-deskW-53, edge=Math.round(spare*0.24*2)/2, mid=spare-2*edge, dx=edge+deskW/2, kx=edge+deskW+mid+26.5;
+  const F=(t,x,z,rot=0)=>({id:nextId++,t,x,z,rot}), Wl=(t,wall,u,y)=>({id:nextId++,t,wall,u,y:y??T[t].y0});
+  const lw=T.loveseat.w, ld=T.loveseat.d, wc=R.win.from+R.win.w/2;
+  return [
+    F('rug',72,80), F(dk,dx,.5+T[dk].d/2), F('chair',dx+3,T[dk].d+17,2), F('keyboard',kx,7.5), F('kbench',kx,13.5+9+T.kbench.d/2),
+    F('console',.5+7.5,36+63.5/2,1), F('loveseat',R.W-.5-ld/2,wc,3), F('floorLamp',R.W-9,R.D-10), F('plantTall',94,R.D-10), F('cabinet',R.nook.x0+.5+7.2,114,1),
+    Wl('tv','tv',36+63.5/2), Wl('guitarA','back',kx-12), Wl('guitarE','back',kx+12),
+    Wl('panel','back',dx-26), Wl('panel','back',dx), Wl('panel','back',dx+26),
+    Wl('shelf','window',27), Wl('art0','door',111), Wl('art1','door',138),
+  ];
+}
+
+/* ---------- Geometry of items ---------- */
+function box(it){ const t=T[it.t]; if(t.kind==='floor'){ const odd=it.rot%2, w=odd?t.d:t.w, d=odd?t.w:t.d; return {x0:it.x-w/2,x1:it.x+w/2,z0:it.z-d/2,z1:it.z+d/2,h:t.h}; }
+  const [x,z]=WALLS[it.wall].pos(it.u), alongX=(it.wall==='back'||it.wall==='door'); return alongX?{x0:x-t.w/2,x1:x+t.w/2,z0:z-t.d,z1:z+t.d,h:t.h}:{x0:x-t.d,x1:x+t.d,z0:z-t.w/2,z1:z+t.w/2,h:t.h}; }
+function inRoom(x,z){ const n=R.nook, e=.01; return (x>=-e&&x<=R.W+e&&z>=-e&&z<=R.D+e)||(x>=n.x0-e&&x<=n.x1+e&&z>=n.z0-e&&z<=n.z1+e); }
+function valid(it){ const b=box(it); return inRoom(b.x0,b.z0)&&inRoom(b.x1,b.z0)&&inRoom(b.x0,b.z1)&&inRoom(b.x1,b.z1); }
+function placeGroup(g,it){ const t=T[it.t]; if(t.kind==='floor'){ g.position.set(it.x,0,it.z); g.rotation.y=it.rot*PI/2; } else { const w=WALLS[it.wall],[x,z]=w.pos(it.u); g.position.set(x,it.y,z); g.rotation.y=w.rot; } }
+
+/* ---------- Dimension labels ---------- */
+function label(text,x,y,z,size=6.5){
+  const c=document.createElement('canvas'), g=c.getContext('2d'); g.font='600 44px Inter, system-ui, sans-serif'; const w=Math.ceil(g.measureText(text).width)+36; c.width=w; c.height=64;
+  g.font='600 44px Inter, system-ui, sans-serif'; g.fillStyle='rgba(250,248,243,.95)'; g.beginPath(); g.roundRect(1,1,w-2,62,12); g.fill(); g.strokeStyle='#8a5a34'; g.lineWidth=2; g.stroke();
+  g.fillStyle='#22252a'; g.textBaseline='middle'; g.fillText(text,18,34);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace;
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,transparent:true})); s.scale.set(size*w/64,size,1); s.position.set(x,y,z); s.renderOrder=20; dims.add(s);
+}
+const lineMat=new THREE.LineBasicMaterial({color:0x8a5a34,depthTest:false});
+function dim(x1,z1,x2,z2,text,y=.6,size){ const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz)||1,nx=-dz/len*3,nz=dx/len*3;
+  const parts=[[[x1,z1],[x2,z2]],[[x1-nx,z1-nz],[x1+nx,z1+nz]],[[x2-nx,z2-nz],[x2+nx,z2+nz]]];
+  for(const seg of parts){ const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(seg.map(p=>new THREE.Vector3(p[0],y,p[1]))),lineMat); l.renderOrder=19; dims.add(l); }
+  label(text,(x1+x2)/2,y+.2,(z1+z2)/2,size); }
+const inch=n=>(Math.round(n*10)/10)+'″';
+
+/* ---------- Fit check (recomputed from wherever things are now) ---------- */
+let facts={};
+function clearFront(it,others,part=1){ const b=box(it), r=it.rot, zAxis=r%2===0, sign=(r===0||r===1)?1:-1;
+  const face=zAxis?(sign>0?b.z1:b.z0):(sign>0?b.x1:b.x0), l0=zAxis?b.x0:b.z0, h0=zAxis?b.x1:b.z1, lo=l0+(h0-l0)*(1-part)/2, hi=h0-(h0-l0)*(1-part)/2;
+  let best=zAxis?(sign>0?R.D-face:face):(sign>0?R.W-face:face), what='the wall';
+  for(const o of others){ const ob=box(o), olo=zAxis?ob.x0:ob.z0, ohi=zAxis?ob.x1:ob.z1; if(Math.min(hi,ohi)-Math.max(lo,olo)<1) continue;
+    const near=zAxis?(sign>0?ob.z0:ob.z1):(sign>0?ob.x0:ob.x1), dist=(near-face)*sign; if(dist>-1&&dist<best){ best=Math.max(0,dist); what=T[o.t].name.toLowerCase(); } }
+  return {dist:best,what}; }
+function fit(){
+  const fl=items.filter(i=>T[i.t].kind==='floor'&&!T[i.t].flat), solid=fl.filter(i=>!T[i.t].tuck), rows=[];
+  const add=(ok,html)=>rows.push(`<li><span class="pill ${ok?'ok':'warn'}">${ok?'Fits':'Check'}</span><span>${html}</span></li>`);
+  const onBack=solid.filter(i=>box(i).z0<4&&box(i).x0>=-1&&T[i.t].label);
+  if(onBack.length){ const used=onBack.reduce((s,i)=>s+box(i).x1-box(i).x0,0); add(used<=R.W, `<b>Back wall:</b> ${onBack.map(i=>T[i.t].name.toLowerCase()).join(' + ')} take <b>${inch(used)}</b> of ${R.W}″, leaving <b>${inch(R.W-used)}</b> spare.`); }
+  const over=[]; for(let a=0;a<solid.length;a++) for(let b=a+1;b<solid.length;b++){ const A=box(solid[a]),B=box(solid[b]); if(Math.min(A.x1,B.x1)-Math.max(A.x0,B.x0)>.6&&Math.min(A.z1,B.z1)-Math.max(A.z0,B.z0)>.6) over.push(T[solid[a].t].name+' and '+T[solid[b].t].name.toLowerCase()); }
+  add(!over.length, over.length?`<b>Overlapping:</b> ${over.join('; ')}.`:`<b>No collisions:</b> nothing on the floor overlaps anything else.`);
+  // entry pinch: from the door-wall corner by the closet to the nearest thing on the floor
+  const cx=R.nook.x1, cz=R.D; let gap=Infinity, gwho='';
+  for(const i of solid){ const b=box(i); if(b.z0>=cz-.5) continue; const dx=Math.max(b.x0-cx,0,cx-b.x1), dz=Math.max(b.z0-cz,0,cz-b.z1), dd=Math.hypot(dx,dz); if(dd<gap){ gap=dd; gwho=T[i.t].name.toLowerCase(); } }
+  facts.entry=gap; if(gap<Infinity) add(gap>=32, `<b>Way in:</b> the opening from the entry into the room is <b>${inch(gap)}</b> at its narrowest, between the closet-side corner and ${gwho}. A doorway is about 30–32″.`);
+  for(const d of items.filter(i=>i.t.startsWith('desk'))){ const c=clearFront(d,solid.filter(o=>o!==d),.5); add(c.dist>=36, `<b>${T[d.t].name}:</b> <b>${inch(c.dist)}</b> behind it before ${c.what}. A chair needs about 36″ to roll back.`); }
+  { const d=items.find(i=>i.t.startsWith('desk')), c=items.find(i=>i.t.startsWith('console')); if(d&&c){ const A=box(d),B=box(c), g=Math.hypot(Math.max(B.x0-A.x1,A.x0-B.x1,0),Math.max(B.z0-A.z1,A.z0-B.z1,0)); if(g<12) add(false, `<b>Desk and console:</b> only <b>${inch(g)}</b> apart at the corner. They don't collide, but it will feel cramped on that side of the desk.`); } }
+  for(const k of items.filter(i=>i.t==='keyboard')){ const c=clearFront(k,solid.filter(o=>o!==k)); add(c.dist>=30, `<b>Keyboard:</b> <b>${inch(c.dist)}</b> of playing room before ${c.what}. A bench needs about 30″.`);
+    const gs=items.filter(i=>i.t.startsWith('guitar')&&i.wall==='back'&&Math.abs(i.u-k.x)<26.5); if(gs.length){ const low=Math.min(...gs.map(g=>g.y)); add(low>=40, `<b>Guitars over the keyboard:</b> the lowest hangs at <b>${inch(low)}</b>; the music stand tops out at 40″.`); } }
+  const sofa=items.find(i=>i.t==='loveseat'||i.t==='bench'), tv=items.find(i=>i.t==='tv');
+  if(sofa&&tv&&tv.wall==='tv'){ const b=box(sofa), dist=b.x0+ (T[sofa.t].d*.55); add(dist>=60&&dist<=140, `<b>TV distance:</b> about <b>${inch(dist)}</b> from the screen to where you sit. A 65″ TV is sharpest at 65–100″ and still fine a few feet further back.`); }
+  const wz0=R.win.from, wz1=wz0+R.win.w, block=solid.filter(i=>{ const b=box(i); return b.x1>R.W-10&&Math.min(b.z1,wz1)-Math.max(b.z0,wz0)>2&&b.h>R.win.sill; });
+  add(!block.length, block.length?`<b>Window:</b> ${block.map(i=>T[i.t].name.toLowerCase()).join(', ')} stands taller than the 40″ sill in front of the window.`:`<b>Window:</b> nothing taller than the 40″ sill stands in front of it.`);
+  const high=items.filter(i=>T[i.t].kind==='wall'&&i.y+T[i.t].h>R.H-1); if(high.length) add(false, `<b>Ceiling:</b> ${high.map(i=>T[i.t].name.toLowerCase()).join(', ')} reaches within 1″ of the 96″ ceiling.`);
+  document.getElementById('fit').innerHTML=rows.join('');
+}
+
+/* ---------- Build the things in the room ---------- */
+function clear(g){ while(g.children.length){ const o=g.children.pop(); o.traverse?.(n=>{ n.geometry?.dispose?.(); if(n.isSprite){ n.material.map?.dispose(); n.material.dispose(); } }); } }
+function buildDims(){
+  clear(dims); const {W,D,H,win,nook:n}=R;
+  dim(0,-12,W,-12,'Back wall '+inch(W));
+  dim(W+12,0,W+12,win.from,inch(win.from)); dim(W+12,win.from,W+12,win.from+win.w,'Window '+inch(win.w)); dim(W+12,win.from+win.w,W+12,D,inch(D-win.from-win.w));
+  dim(W+30,0,W+30,D,'Window wall '+inch(D));
+  dim(-12,0,-12,n.z0,'TV wall '+inch(n.z0)); dim(n.x0,n.z0-10,0,n.z0-10,inch(-n.x0),.6,5); dim(n.x0-12,n.z0,n.x0-12,n.z1,'Entry '+inch(n.z1-n.z0));
+  dim(n.x0,n.z1+12,n.x1,n.z1+12,inch(n.x1-n.x0)); dim(n.x1+8,D,n.x1+8,n.z1,inch(n.z1-D),.6,5); dim(n.x1,D+40,W,D+40,'Door wall '+inch(W-n.x1));
+  for(const it of items){ const t=T[it.t]; if(!t.label) continue; const b=box(it); label(`${t.name.replace('Your ','').replace(', 78″','').replace(', 72″','')} ${inch(t.w)} × ${inch(t.d)}`,(b.x0+b.x1)/2,t.h+3,(b.z0+b.z1)/2,5); }
+  if(facts.entry<Infinity&&facts.entry!==undefined) label('Way in '+inch(facts.entry),n.x1-6,2,D-12,5);
+  label('Ceiling '+inch(H),W-28,H-8,D-3,5);
+  dims.visible=S.dims;
+}
+function buildItems(){
+  clear(furn);
+  for(const it of items){ const g=new THREE.Group(); g.userData.id=it.id; T[it.t].build(g,T[it.t]); placeGroup(g,it); furn.add(g); }
+  markSel();
+}
+function buildLights(){
+  clear(lights); const {W,D,H,win}=R, L=S.lights, any=L.cans||L.fan||L.desk||L.floor||L.shelf;
+  lights.add(new THREE.HemisphereLight(L.sun?0xffffff:0xffe6c8, L.sun?0xd9d2c8:0x2a2420, L.sun?.75:(any?.12:.05)));
+  scene.environmentIntensity = L.sun?.5:(any?.1:.03);
+  if(L.sun){ const sun=new THREE.SpotLight(0xfff3e0,40,0,.42,.7,1.2); sun.position.set(W+75,105,win.from+win.w/2+10); sun.target.position.set(48,0,win.from+12);
+    sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.bias=-.0004; sun.shadow.camera.near=1; sun.shadow.camera.far=12; lights.add(sun,sun.target); }
+  if(L.cans) for(const [x,z] of cans()){ const p=new THREE.PointLight(0xffd7a3,2.8,0,2); p.position.set(x,H-6,z); lights.add(p); }
+  if(L.fan){ const p=new THREE.PointLight(0xffe0b5,3.2,0,2); p.position.set(W/2,H-R.fanDrop-3,D/2); lights.add(p); }
+  mat.glass.color.set(L.sun?0xcfe3f1:0x1a2433); mat.can.emissiveIntensity=L.cans?2.4:.15; mat.fanLamp.emissiveIntensity=L.fan?2.4:.15;
+  renderer.toneMappingExposure=L.sun?1:1.2;
+  for(const b of document.querySelectorAll('#segLights button')) b.setAttribute('aria-pressed',!!L[b.dataset.l]);
+}
+function refresh(){ buildItems(); fit(); buildDims(); renderList(); renderSel(); save(); }
+
+/* ---------- Selection, moving, adding, removing ---------- */
+const byId=id=>items.find(i=>i.id===id);
+function markSel(){ if(selBox){ scene.remove(selBox); selBox.geometry.dispose(); selBox=null; } const g=furn.children.find(c=>c.userData.id===S.sel); if(g){ selBox=new THREE.BoxHelper(g,0xd98a3d); selBox.material.depthTest=false; selBox.renderOrder=30; scene.add(selBox); } }
+function renderSel(){ const it=byId(S.sel), card=document.getElementById('selCard'); card.hidden=!it; document.getElementById('selEmpty').hidden=!!it; if(!it) return; const t=T[it.t];
+  document.getElementById('selName').textContent=t.name+(t.product?': '+t.product:'');
+  document.getElementById('selSize').innerHTML=`<b>${inch(t.w)} wide × ${inch(t.d)} deep × ${inch(t.h)} tall</b>`+(t.kind==='wall'?` · on the ${WALLS[it.wall].name}, bottom edge ${inch(it.y)} off the floor`:'');
+  const src=document.getElementById('selSrc'); src.textContent='Size from: '+(t.url?'the product listing':t.src)+(t.price?` · about $${t.price}`:'')+' '; if(t.url){ const a=document.createElement('a'); a.href=t.url; a.target='_blank'; a.rel='noopener'; a.textContent='Open listing'; src.append(a); }
+  if(t.note){ src.append(document.createElement('br'), t.note); }
+  document.getElementById('selRot').textContent=t.kind==='wall'?'Move to next wall':'Turn 90°'; }
+function renderList(){ const el=document.getElementById('inroom'); el.innerHTML=''; for(const it of items){ const b=document.createElement('button'); b.textContent=T[it.t].name; b.setAttribute('aria-pressed',it.id===S.sel); b.onclick=()=>select(it.id); el.append(b); } }
+function select(id){ S.sel=id; markSel(); renderSel(); for(const b of document.querySelectorAll('#inroom button')) b.setAttribute('aria-pressed',false); const idx=items.findIndex(i=>i.id===id); if(idx>=0) document.querySelectorAll('#inroom button')[idx]?.setAttribute('aria-pressed',true); }
+document.getElementById('selDel').onclick=()=>{ items=items.filter(i=>i.id!==S.sel); S.sel=null; refresh(); };
+document.getElementById('selRot').onclick=()=>{ const it=byId(S.sel); if(!it) return; const t=T[it.t];
+  if(t.kind==='floor'){ const old=it.rot; it.rot=(it.rot+1)%4; if(!valid(it)){ it.x=Math.min(Math.max(it.x,t.w/2+1),R.W-t.w/2-1); it.z=Math.min(Math.max(it.z,t.w/2+1),R.D-t.w/2-1); if(!valid(it)) it.rot=old; } }
+  else { it.wall=WALL_ORDER[(WALL_ORDER.indexOf(it.wall)+1)%4]; const w=WALLS[it.wall]; it.u=Math.min(Math.max((w.min+w.max)/2,w.min+t.w/2),w.max-t.w/2); }
+  refresh(); };
+const addSel=document.getElementById('addSel');
+{ const cats={}; for(const k in T) (cats[T[k].cat]??=[]).push(k); for(const c in cats){ const og=document.createElement('optgroup'); og.label=c; for(const k of cats[c]){ const o=document.createElement('option'); o.value=k; o.textContent=`${T[k].name} (${inch(T[k].w)} × ${inch(T[k].kind==='wall'?T[k].h:T[k].d)})`; og.append(o); } addSel.append(og); } addSel.value='plantTall'; }
+document.getElementById('addBtn').onclick=()=>{ const k=addSel.value, t=T[k]; let it;
+  if(t.kind==='floor') it={id:nextId++,t:k,x:R.W/2,z:R.D*.55,rot:0}; else { it={id:nextId++,t:k,wall:'back',u:R.W/2,y:Math.min(t.y0??50,R.H-t.h)}; }
+  items.push(it); S.sel=it.id; refresh(); };
+
+const ray=new THREE.Raycaster(), ptr=new THREE.Vector2(), floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0), hit=new THREE.Vector3();
+let drag=null, down=null;
+function setRay(e){ const r=renderer.domElement.getBoundingClientRect(); ptr.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); ray.setFromCamera(ptr,camera); }
+function pick(e){ setRay(e); const h=ray.intersectObjects(furn.children,true)[0]; if(!h) return null; let o=h.object; while(o&&o.userData.id===undefined) o=o.parent; return o?o.userData.id:null; }
+function planeHit(it){ const t=T[it.t], pl=t.kind==='floor'?floorPlane:WALLS[it.wall].plane; return ray.ray.intersectPlane(pl,hit)?hit.clone().divideScalar(I):null; }
+renderer.domElement.addEventListener('pointerdown',e=>{ if(renderer.xr.isPresenting||e.button>0) return; down={x:e.clientX,y:e.clientY,id:pick(e)};
+  const it=byId(S.sel); if(it&&down.id===it.id){ const p=planeHit(it); if(!p) return; e.stopImmediatePropagation(); e.preventDefault(); controls.enabled=false;
+    drag=T[it.t].kind==='floor'?{it,ox:p.x-it.x,oz:p.z-it.z}:{it,ou:WALLS[it.wall].u(p)-it.u,oy:p.y-it.y}; renderer.domElement.setPointerCapture?.(e.pointerId); } },true);
+addEventListener('pointermove',e=>{ if(!drag) return; setRay(e); const it=drag.it, t=T[it.t], p=planeHit(it); if(!p) return;
+  if(t.kind==='floor'){ const px=it.x, pz=it.z; let x=p.x-drag.ox, z=p.z-drag.oz; const odd=it.rot%2, w=odd?t.d:t.w, d=odd?t.w:t.d;
+    if(!t.flat){ if(x-w/2<3&&z<R.nook.z0) x=w/2+.5; if(x+w/2>R.W-3) x=R.W-w/2-.5; if(z-d/2<3&&x>0) z=d/2+.5; if(z+d/2>R.D-3&&z+d/2<R.D+6&&x-w/2>=R.nook.x1) z=R.D-d/2-.5; }
+    it.x=x; it.z=z; if(!valid(it)){ it.z=pz; if(!valid(it)){ it.x=px; it.z=z; if(!valid(it)){ it.z=pz; } } } }
+  else { const w=WALLS[it.wall]; it.u=Math.min(Math.max(w.u(p)-drag.ou,w.min+t.w/2),w.max-t.w/2); it.y=Math.min(Math.max(p.y-drag.oy,t.y0===0?0:2),R.H-t.h); if(t.y0===0) it.y=0; }
+  const g=furn.children.find(c=>c.userData.id===it.id); if(g){ placeGroup(g,it); selBox?.update(); } });
+addEventListener('pointerup',e=>{ if(drag){ drag=null; controls.enabled=true; refresh(); down=null; return; }
+  if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<5&&e.target===renderer.domElement){ select(down.id); } down=null; });
+
+/* ---------- Views ---------- */
+const names={door:'From the doorway',plan:'Floor plan',iso:'Dollhouse',desk:'Workstation',music:'Music corner',tv:'From the seat'};
+function facing(it,dist,side,h){ const r=it.rot, f=[[0,1],[1,0],[0,-1],[-1,0]][r]; return [it.x+f[0]*dist-f[1]*side,h,it.z+f[1]*dist+f[0]*side]; }
+function viewSpec(v){
+  const {W,D,nook:n}=R, a=camera.aspect, wide=a<1;
+  if(v==='plan'){ const cx=(W+n.x0)/2+8, cz=n.z1/2-2, fov=22, half=Math.max(118,128/a); return {p:[cx,half/Math.tan(fov*PI/360),cz+.5],t:[cx,0,cz],fov,dims:true}; }
+  if(v==='iso'){ const k=wide?1.5:1; return {p:[W+95*k,215*k,D+175*k],t:[W/2-10,18,D/2+5],fov:38,dims:true}; }
+  if(v==='desk'){ const d=items.find(i=>i.t.startsWith('desk')); if(d) return {p:facing(d,82,18,60),t:[d.x,40,d.z],fov:wide?78:58}; }
+  if(v==='music'){ const k=items.find(i=>i.t==='keyboard'); if(k) return {p:facing(k,90,-28,60),t:[k.x,48,k.z],fov:wide?78:58}; }
+  if(v==='tv'){ const s=items.find(i=>i.t==='loveseat'||i.t==='bench'), tv=items.find(i=>i.t==='tv'); const p=s?[s.x-8,44,s.z+6]:[W-22,44,80]; const [tx,tz]=tv?WALLS[tv.wall].pos(tv.u):[0,68]; return {p,t:[tx,38,tz],fov:wide?85:62}; }
+  return {p:[n.x1-5,66,D-9],t:[W*.56,30,D*.2],fov:wide?95:80};
+}
+let anim=null;
+function setView(v,instant){
+  S.view=v; const s=viewSpec(v); document.getElementById('viewname').textContent=names[v];
+  for(const b of document.querySelectorAll('#segView button')) b.setAttribute('aria-pressed', b.dataset.v===v);
+  S.dims=!!s.dims; dims.visible=S.dims; document.getElementById('togDims').setAttribute('aria-pressed',S.dims);
+  const p1=new THREE.Vector3(...s.p).multiplyScalar(I), t1=new THREE.Vector3(...s.t).multiplyScalar(I);
+  if(instant||matchMedia('(prefers-reduced-motion: reduce)').matches){ camera.position.copy(p1); controls.target.copy(t1); camera.fov=s.fov; camera.updateProjectionMatrix(); controls.update(); anim=null; return; }
+  anim={p0:camera.position.clone(),t0:controls.target.clone(),f0:camera.fov,p1,t1,f1:s.fov,t:performance.now()};
+}
+
+/* ---------- Panel wiring ---------- */
+{ const big=document.getElementById('big'), bi=document.getElementById('bigImg'); const open=i=>{ bi.src=i.src; bi.alt=i.alt; big.hidden=false; };
+  document.querySelectorAll('.stills img').forEach(i=>{ i.onclick=()=>open(i); i.onkeydown=e=>{ if(e.key==='Enter') open(i); }; }); big.onclick=()=>{ big.hidden=true; }; }
+document.querySelectorAll('#segDesk button').forEach(b=>b.onclick=()=>{ items=defaults(+b.dataset.v); S.sel=null; refresh(); });
+document.querySelectorAll('#segLook button').forEach(b=>b.onclick=()=>{ S.look=b.dataset.v; syncLook(); save(); });
+function syncLook(){ applyLook(); for(const b of document.querySelectorAll('#segLook button')) b.setAttribute('aria-pressed',b.dataset.v===S.look); }
+document.querySelectorAll('#segLights button').forEach(b=>b.onclick=()=>{ S.lights[b.dataset.l]=S.lights[b.dataset.l]?0:1; buildLights(); buildItems(); save(); });
+document.getElementById('lightDay').onclick=()=>{ S.lights={sun:1,cans:0,fan:0,desk:0,screens:1,floor:0,shelf:0}; buildLights(); buildItems(); save(); };
+document.getElementById('lightEve').onclick=()=>{ S.lights={sun:0,cans:1,fan:0,desk:1,screens:1,floor:1,shelf:1}; buildLights(); buildItems(); save(); };
+document.getElementById('togDims').onclick=e=>{ S.dims=!S.dims; dims.visible=S.dims; e.currentTarget.setAttribute('aria-pressed',S.dims); };
+document.querySelectorAll('#segView button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+function resize(){ const w=stage.clientWidth, h=stage.clientHeight; if(!w||!h) return; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+new ResizeObserver(()=>{ resize(); if(!anim && !renderer.xr.isPresenting && S.view==='plan') setView('plan',true); }).observe(stage);
+
+/* ---------- VR (only offered where the browser allows it) ---------- */
+if(navigator.xr?.isSessionSupported){ navigator.xr.isSessionSupported('immersive-vr').then(ok=>{ if(!ok) return;
+  document.getElementById('vrslot').append(VRButton.createButton(renderer));
+  renderer.xr.addEventListener('sessionstart',()=>{ dims.visible=false; if(selBox) selBox.visible=false; rig.position.set(R.W/2*I,0,R.D*.7*I); });
+  renderer.xr.addEventListener('sessionend',()=>{ rig.position.set(0,0,0); if(selBox) selBox.visible=true; setView(S.view,true); });
+}).catch(()=>{}); }
+const fwd=new THREE.Vector3();
+function vrMove(dt){ const s=renderer.xr.getSession(); if(!s) return;
+  for(const src of s.inputSources){ const ax=src.gamepad?.axes; if(!ax||ax.length<4) continue; const x=ax[2], y=ax[3]; if(Math.abs(x)+Math.abs(y)<.15) continue;
+    renderer.xr.getCamera().getWorldDirection(fwd); fwd.y=0; fwd.normalize(); const rt=new THREE.Vector3(-fwd.z,0,fwd.x);
+    rig.position.addScaledVector(fwd,-y*dt*1.2).addScaledVector(rt,x*dt*1.2); } }
+
+/* ---------- Exact scene export for photoreal stills (Blender) ---------- */
+async function exportGLB(){ const dv=dims.visible; dims.visible=false; lights.visible=false; const hid=[]; furn.traverse(o=>{ if(o.isLight){ hid.push(o); o.visible=false; } });
+  const buf=await new GLTFExporter().parseAsync(world,{binary:true,onlyVisible:true}); dims.visible=dv; lights.visible=true; hid.forEach(o=>o.visible=true);
+  let s=''; const u=new Uint8Array(buf); for(let i=0;i<u.length;i+=32768) s+=String.fromCharCode.apply(null,u.subarray(i,i+32768)); return btoa(s); }
+function shot(){ const lampAt=[]; furn.traverse(o=>{ if(o.isLight){ const p=o.getWorldPosition(new THREE.Vector3()); lampAt.push({type:o.type,color:o.color.getHex(),intensity:o.intensity,p:[p.x,p.y,p.z]}); } });
+  return {cam:{p:camera.getWorldPosition(new THREE.Vector3()).toArray(),t:controls.target.toArray(),fov:camera.fov,aspect:camera.aspect},lights:{...S.lights},itemLights:lampAt,
+    cans:cans().map(([x,z])=>[x*I,(R.H-1)*I,z*I]),fan:[R.W/2*I,(R.H-R.fanDrop-1)*I,R.D/2*I],win:{x:R.W*I,y:(R.win.sill+R.win.top)/2*I,z:(R.win.from+R.win.w/2)*I,w:R.win.w*I,h:(R.win.top-R.win.sill)*I}}; }
+
+/* ---------- Go ---------- */
+buildShell();
+if(!load()) items=defaults(78); else nextId=Math.max(0,...items.map(i=>i.id))+1;
+syncLook(); buildLights(); refresh(); resize(); setView('door',true);
+let last=performance.now();
+renderer.setAnimationLoop(now=>{ const dt=Math.min(.05,(now-last)/1000); last=now;
+  if(renderer.xr.isPresenting) vrMove(dt);
+  else { if(anim){ let k=Math.min(1,(now-anim.t)/700); k=k*k*(3-2*k); camera.position.lerpVectors(anim.p0,anim.p1,k); controls.target.lerpVectors(anim.t0,anim.t1,k); camera.fov=anim.f0+(anim.f1-anim.f0)*k; camera.updateProjectionMatrix(); if(k>=1) anim=null; } controls.update(); }
+  renderer.render(scene,camera); });
+window.__room={R,S,T,items:()=>items,facts:()=>facts,setView,exportGLB,shot,select};
+</script>
